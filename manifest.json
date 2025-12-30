@@ -1,0 +1,36 @@
+{
+  "manifest_version": 2,
+  "name": "AI Web Summarizer",
+  "version": "1.0.6",
+  "description": "Summarize any webpage using ChatGPT or OpenRouter AI",
+  "permissions": [
+    "activeTab",
+    "storage",
+	"contextMenus",
+	"notifications",
+    "<all_urls>"
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "ai-summarizer-extension@yourdomain.com",
+      "strict_min_version": "142.0",
+      "data_collection_permissions": {
+        "required": ["websiteContent"]
+      }
+    }
+  },
+  "browser_action": {
+    "default_popup": "popup.html",
+    "default_title": "AI Web Summarizer"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ],
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": false
+  }
+}

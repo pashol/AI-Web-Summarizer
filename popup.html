@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Web Summarizer</title>
+  <style>
+    body { width: 500px; padding: 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    h2 { margin: 0; font-size: 18px; color: #333; }
+    .header-buttons { display: flex; gap: 8px; }
+    #toggleSettingsBtn, #toggleChatBtn { padding: 6px 12px; background: #6c757d; color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer; width: auto; margin: 0; }
+    #toggleSettingsBtn:hover, #toggleChatBtn:hover { background: #5a6268; }
+    .settings { margin-bottom: 16px; padding: 12px; background: #f5f5f5; border-radius: 6px; }
+    .settings.hidden { display: none; }
+    .chat-panel { margin-bottom: 16px; padding: 12px; background: #f0f8ff; border-radius: 6px; }
+    .chat-panel.hidden { display: none; }
+    label { display: block; margin-bottom: 8px; font-size: 13px; font-weight: 500; color: #555; }
+    select, input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; box-sizing: border-box; margin-bottom: 12px; }
+    textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; box-sizing: border-box; margin-bottom: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; resize: vertical; }
+    button { width: 100%; padding: 10px; background: #0066cc; color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; margin-bottom: 8px; }
+    button:hover { background: #0052a3; }
+    button:disabled { background: #ccc; cursor: not-allowed; }
+    #speakBtn { background: #28a745; display: none; }
+    #speakBtn:hover { background: #218838; }
+    #speakBtn.speaking { background: #dc3545; }
+    #saveSettingsBtn.hidden { display: none; }
+    .summary { margin-top: 16px; padding: 12px; background: #f9f9f9; border-radius: 6px; border: 1px solid #e0e0e0; max-height: 400px; overflow-y: auto; font-size: 13px; line-height: 1.6; color: #333; white-space: pre-wrap; }
+    .error { background: #fff3f3; border-color: #ffcccc; color: #c00; }
+    .loading { text-align: center; color: #666; font-style: italic; }
+    .hidden { display: none; }
+    .info { font-size: 11px; color: #777; margin-top: 4px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h2>🤖 AI Web Summarizer</h2>
+    <div class="header-buttons">
+      <button id="toggleChatBtn">💬 Chat</button>
+      <button id="toggleSettingsBtn">⚙️ Settings</button>
+    </div>
+  </div>
+  
+  <div class="settings hidden" id="settingsPanel">
+    <label>AI Provider:</label>
+    <select id="provider">
+      <option value="openrouter">OpenRouter</option>
+      <option value="openai">ChatGPT (OpenAI Native)</option>
+    </select>
+
+    <label>API Key:</label>
+    <input type="password" id="apiKey" placeholder="Enter your API key">
+
+    <label>Model:</label>
+    <select id="model"></select>
+
+    <label>Summary Language:</label>
+    <select id="language">
+      <option value="english">English</option>
+      <option value="spanish">Spanish (Español)</option>
+      <option value="french">French (Français)</option>
+      <option value="german">German (Deutsch)</option>
+      <option value="italian">Italian (Italiano)</option>
+      <option value="portuguese">Portuguese (Português)</option>
+      <option value="russian">Russian (Русский)</option>
+      <option value="chinese">Chinese (中文)</option>
+      <option value="japanese">Japanese (日本語)</option>
+      <option value="korean">Korean (한국어)</option>
+      <option value="arabic">Arabic (العربية)</option>
+      <option value="hindi">Hindi (हिन्दी)</option>
+      <option value="dutch">Dutch (Nederlands)</option>
+      <option value="polish">Polish (Polski)</option>
+      <option value="turkish">Turkish (Türkçe)</option>
+    </select>
+    
+    <button id="saveSettingsBtn">Save Settings</button>
+  </div>
+
+  <div class="chat-panel hidden" id="chatPanel">
+    <label>Ask AI Anything:</label>
+    <textarea id="customPrompt" placeholder="Enter your question or prompt here..." rows="4"></textarea>
+    <button id="sendPromptBtn">Send</button>
+  </div>
+
+  <button id="summarizeBtn">Summarize This Page</button>
+  <button id="speakBtn">🔊 Read Aloud</button>
+  <div id="result" class="summary hidden"></div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
