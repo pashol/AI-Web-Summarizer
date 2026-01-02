@@ -1,12 +1,105 @@
 let isSpeaking = false;
 const synth = window.speechSynthesis;
 let MODELS = {};
+let availableVoices = [];
+
+// Language code mapping
+const langMap = {
+  'english': 'en', 'spanish': 'es', 'french': 'fr', 'german': 'de',
+  'italian': 'it', 'portuguese': 'pt', 'russian': 'ru', 'chinese': 'zh',
+  'japanese': 'ja', 'korean': 'ko', 'arabic': 'ar', 'hindi': 'hi',
+  'dutch': 'nl', 'polish': 'pl', 'turkish': 'tr'
+};
 
 // Get models from background script
 browser.runtime.sendMessage({ action: 'getModels' }).then(response => {
   MODELS = response.models;
   loadSettings();
 });
+
+// Load and populate voices
+function loadVoices() {
+  availableVoices = synth.getVoices();
+  populateVoiceDropdown();
+}
+
+// Voices may load asynchronously
+if (synth.onvoiceschanged !== undefined) {
+  synth.onvoiceschanged = loadVoices;
+}
+loadVoices();
+
+// Populate voice dropdown based on current language
+function populateVoiceDropdown(selectedVoiceName = null) {
+  const voiceSelect = document.getElementById('ttsVoice');
+  const currentLang = document.getElementById('language').value;
+  const langCode = langMap[currentLang] || 'en';
+  
+  voiceSelect.innerHTML = '';
+  
+  // Add default option
+  const defaultOpt = document.createElement('option');
+  defaultOpt.value = '';
+  defaultOpt.textContent = '— Auto (Best Available) —';
+  voiceSelect.appendChild(defaultOpt);
+  
+  // Filter and sort voices
+  const filteredVoices = availableVoices.filter(v => v.lang.startsWith(langCode));
+  const otherVoices = availableVoices.filter(v => !v.lang.startsWith(langCode));
+  
+  // Add matching language voices first
+  if (filteredVoices.length > 0) {
+    const group = document.createElement('optgroup');
+    group.label = `${currentLang.charAt(0).toUpperCase() + currentLang.slice(1)} Voices`;
+    filteredVoices.forEach(voice => {
+      const opt = document.createElement('option');
+      opt.value = voice.name;
+      opt.textContent = `${voice.name} (${voice.lang})`;
+      if (voice.name === selectedVoiceName) opt.selected = true;
+      group.appendChild(opt);
+    });
+    voiceSelect.appendChild(group);
+  }
+  
+  // Add other voices
+  if (otherVoices.length > 0) {
+    const group = document.createElement('optgroup');
+    group.label = 'Other Voices';
+    otherVoices.forEach(voice => {
+      const opt = document.createElement('option');
+      opt.value = voice.name;
+      opt.textContent = `${voice.name} (${voice.lang})`;
+      if (voice.name === selectedVoiceName) opt.selected = true;
+      group.appendChild(opt);
+    });
+    voiceSelect.appendChild(group);
+  }
+}
+
+// Get the best voice for current settings
+function getBestVoice(preferredVoiceName) {
+  const currentLang = document.getElementById('language').value;
+  const langCode = langMap[currentLang] || 'en';
+  
+  // 1. Try to use saved voice if it exists
+  if (preferredVoiceName) {
+    const savedVoice = availableVoices.find(v => v.name === preferredVoiceName);
+    if (savedVoice) return savedVoice;
+  }
+  
+  // 2. Try to find a Google voice for the language
+  const googleVoice = availableVoices.find(v => 
+    v.name.toLowerCase().includes('google') && v.lang.startsWith(langCode)
+  );
+  if (googleVoice) return googleVoice;
+  
+  // 3. Try any voice matching the language
+  const langVoice = availableVoices.find(v => v.lang.startsWith(langCode));
+  if (langVoice) return langVoice;
+  
+  // 4. Fall back to system default
+  return availableVoices.find(v => v.default) || availableVoices[0] || null;
+}
 
 // Update model dropdown options
 function updateModelOptions(selectedModelId) {
@@ -23,38 +116,67 @@ function updateModelOptions(selectedModelId) {
   });
 }
 
-// Toggle settings panel
+// Toggle panels
 document.getElementById('toggleSettingsBtn').addEventListener('click', () => {
-  const settingsPanel = document.getElementById('settingsPanel');
-  settingsPanel.classList.toggle('hidden');
+  document.getElementById('settingsPanel').classList.toggle('hidden');
 });
 
-// Toggle chat panel
 document.getElementById('toggleChatBtn').addEventListener('click', () => {
-  const chatPanel = document.getElementById('chatPanel');
-  chatPanel.classList.toggle('hidden');
+  document.getElementById('chatPanel').classList.toggle('hidden');
 });
 
-// Load settings and determine initial visibility
+document.getElementById('toggleTtsBtn').addEventListener('click', () => {
+  document.getElementById('ttsPanel').classList.toggle('hidden');
+});
+
+// Slider value displays
+document.getElementById('ttsRate').addEventListener('input', (e) => {
+  document.getElementById('ttsRateValue').textContent = `${e.target.value}x`;
+});
+
+document.getElementById('ttsPitch').addEventListener('input', (e) => {
+  document.getElementById('ttsPitchValue').textContent = e.target.value;
+});
+
+// Update voice dropdown when language changes
+document.getElementById('language').addEventListener('change', async () => {
+  const data = await browser.storage.local.get(['ttsVoice']);
+  populateVoiceDropdown(data.ttsVoice);
+});
+
+// Load settings
 async function loadSettings() {
-  const data = await browser.storage.local.get(['provider', 'apiKey', 'model', 'language']);
+  const data = await browser.storage.local.get([
+    'provider', 'apiKey', 'model', 'language',
+    'ttsRate', 'ttsPitch', 'ttsVoice'
+  ]);
   
   if (data.provider) document.getElementById('provider').value = data.provider;
   if (data.apiKey) document.getElementById('apiKey').value = data.apiKey;
   if (data.language) document.getElementById('language').value = data.language;
   
-  updateModelOptions(data.model);
+  // TTS settings
+  if (data.ttsRate) {
+    document.getElementById('ttsRate').value = data.ttsRate;
+    document.getElementById('ttsRateValue').textContent = `${data.ttsRate}x`;
+  }
+  if (data.ttsPitch) {
+    document.getElementById('ttsPitch').value = data.ttsPitch;
+    document.getElementById('ttsPitchValue').textContent = data.ttsPitch;
+  }
   
-  // Show settings panel if no API key is set
-  const settingsPanel = document.getElementById('settingsPanel');
+  updateModelOptions(data.model);
+  populateVoiceDropdown(data.ttsVoice);
+  
+  // Show settings panel if no API key
   if (!data.apiKey) {
-    settingsPanel.classList.remove('hidden');
+    document.getElementById('settingsPanel').classList.remove('hidden');
   }
 }
 
 document.getElementById('provider').addEventListener('change', () => updateModelOptions());
 
-// Save settings
+// Save AI settings
 document.getElementById('saveSettingsBtn').addEventListener('click', async () => {
   const provider = document.getElementById('provider').value;
   const apiKey = document.getElementById('apiKey').value;
@@ -68,7 +190,10 @@ document.getElementById('saveSettingsBtn').addEventListener('click', async () =>
   result.textContent = 'Settings saved successfully!'; 
   result.classList.remove('hidden');
   
-  // Hide settings panel after saving if API key is set
+  // Refresh voice dropdown for new language
+  const data = await browser.storage.local.get(['ttsVoice']);
+  populateVoiceDropdown(data.ttsVoice);
+  
   if (apiKey) {
     setTimeout(() => {
       document.getElementById('settingsPanel').classList.add('hidden');
@@ -77,6 +202,46 @@ document.getElementById('saveSettingsBtn').addEventListener('click', async () =>
   } else {
     setTimeout(() => result.classList.add('hidden'), 2000);
   }
+});
+
+// Save TTS settings
+document.getElementById('saveTtsBtn').addEventListener('click', async () => {
+  const ttsRate = document.getElementById('ttsRate').value;
+  const ttsPitch = document.getElementById('ttsPitch').value;
+  const ttsVoice = document.getElementById('ttsVoice').value;
+
+  await browser.storage.local.set({ ttsRate, ttsPitch, ttsVoice });
+  
+  const result = document.getElementById('result');
+  result.className = 'summary';
+  result.textContent = 'TTS settings saved!'; 
+  result.classList.remove('hidden');
+  
+  setTimeout(() => {
+    document.getElementById('ttsPanel').classList.add('hidden');
+    result.classList.add('hidden');
+  }, 1500);
+});
+
+// Test TTS
+document.getElementById('testTtsBtn').addEventListener('click', async () => {
+  synth.cancel();
+  
+  const testText = "This is a test of the text-to-speech settings.";
+  const utterance = new SpeechSynthesisUtterance(testText);
+  
+  const data = await browser.storage.local.get(['ttsRate', 'ttsPitch', 'ttsVoice', 'language']);
+  
+  utterance.rate = parseFloat(data.ttsRate) || 1;
+  utterance.pitch = parseFloat(data.ttsPitch) || 1;
+  
+  const voice = getBestVoice(data.ttsVoice);
+  if (voice) {
+    utterance.voice = voice;
+    utterance.lang = voice.lang;
+  }
+  
+  synth.speak(utterance);
 });
 
 // Send custom prompt
@@ -108,9 +273,7 @@ document.getElementById('sendPromptBtn').addEventListener('click', async () => {
       prompt: promptText
     });
     
-    if (response.error) {
-      throw new Error(response.error);
-    }
+    if (response.error) throw new Error(response.error);
     
     result.className = 'summary';
     result.textContent = response;
@@ -150,9 +313,7 @@ document.getElementById('summarizeBtn').addEventListener('click', async () => {
       tab: tabs[0]
     });
     
-    if (response.error) {
-      throw new Error(response.error);
-    }
+    if (response.error) throw new Error(response.error);
     
     result.className = 'summary';
     result.textContent = response.summary;
@@ -169,8 +330,8 @@ document.getElementById('summarizeBtn').addEventListener('click', async () => {
   }
 });
 
-// READ ALOUD LOGIC
-document.getElementById('speakBtn').addEventListener('click', () => {
+// READ ALOUD with custom settings
+document.getElementById('speakBtn').addEventListener('click', async () => {
   if (isSpeaking) {
     synth.cancel();
     updateSpeakButton(false);
@@ -180,19 +341,28 @@ document.getElementById('speakBtn').addEventListener('click', () => {
   const text = document.getElementById('result').textContent;
   const utterance = new SpeechSynthesisUtterance(text);
   
-  const langMap = {
-    'english': 'en-US', 'spanish': 'es-ES', 'french': 'fr-FR', 'german': 'de-DE',
-    'italian': 'it-IT', 'portuguese': 'pt-PT', 'russian': 'ru-RU', 'chinese': 'zh-CN',
-    'japanese': 'ja-JP', 'korean': 'ko-KR', 'arabic': 'ar-SA', 'hindi': 'hi-IN',
-    'dutch': 'nl-NL', 'polish': 'pl-PL', 'turkish': 'tr-TR'
-  };
-
-  browser.storage.local.get('language').then(data => {
-    utterance.lang = langMap[data.language] || 'en-US';
-    utterance.onend = () => updateSpeakButton(false);
-    updateSpeakButton(true);
-    synth.speak(utterance);
-  });
+  const data = await browser.storage.local.get(['language', 'ttsRate', 'ttsPitch', 'ttsVoice']);
+  
+  // Apply saved settings
+  utterance.rate = parseFloat(data.ttsRate) || 1;
+  utterance.pitch = parseFloat(data.ttsPitch) || 1;
+  
+  // Get best voice
+  const voice = getBestVoice(data.ttsVoice);
+  if (voice) {
+    utterance.voice = voice;
+    utterance.lang = voice.lang;
+  } else {
+    // Fallback to language code
+    const langCode = langMap[data.language] || 'en';
+    utterance.lang = langCode + '-' + langCode.toUpperCase();
+  }
+  
+  utterance.onend = () => updateSpeakButton(false);
+  utterance.onerror = () => updateSpeakButton(false);
+  
+  updateSpeakButton(true);
+  synth.speak(utterance);
 });
 
 function updateSpeakButton(speaking) {

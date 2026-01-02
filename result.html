@@ -79,6 +79,7 @@
       margin-top: 20px;
       display: flex;
       gap: 10px;
+      flex-wrap: wrap;
     }
     button {
       padding: 10px 20px;
@@ -107,6 +108,50 @@
     }
     #copyBtn:hover {
       background: #5a6268;
+    }
+    #toggleTtsBtn {
+      background: #17a2b8;
+    }
+    #toggleTtsBtn:hover {
+      background: #138496;
+    }
+    .tts-settings {
+      margin-top: 20px;
+      padding: 15px;
+      background: #f0fff0;
+      border-radius: 6px;
+      border: 1px solid #c3e6cb;
+    }
+    .tts-settings.hidden {
+      display: none;
+    }
+    .tts-settings label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #555;
+    }
+    .tts-settings select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 13px;
+      box-sizing: border-box;
+      margin-bottom: 12px;
+    }
+    .slider-container {
+      margin-bottom: 12px;
+    }
+    .slider-container input[type="range"] {
+      width: 100%;
+    }
+    .slider-value {
+      font-size: 12px;
+      color: #666;
+      text-align: right;
+      margin-top: 4px;
     }
     .copied-notification {
       display: none;
@@ -154,6 +199,26 @@
     <div class="actions" id="actions" style="display: none;">
       <button id="speakBtn">🔊 Read Aloud</button>
       <button id="copyBtn">📋 Copy Summary</button>
+      <button id="toggleTtsBtn">⚙️ TTS Settings</button>
+    </div>
+
+    <div class="tts-settings hidden" id="ttsPanel">
+      <label>Voice:</label>
+      <select id="ttsVoice"></select>
+
+      <div class="slider-container">
+        <label>Speed (Rate):</label>
+        <input type="range" id="ttsRate" min="0.5" max="2" step="0.1" value="1">
+        <div class="slider-value" id="ttsRateValue">1.0x</div>
+      </div>
+
+      <div class="slider-container">
+        <label>Pitch:</label>
+        <input type="range" id="ttsPitch" min="0.5" max="2" step="0.1" value="1">
+        <div class="slider-value" id="ttsPitchValue">1.0</div>
+      </div>
+
+      <button id="saveTtsBtn">Save TTS Settings</button>
     </div>
   </div>
 
