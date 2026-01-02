@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "AI Web Summarizer",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Summarize any webpage using ChatGPT or OpenRouter AI",
   "permissions": [
     "activeTab",
@@ -19,9 +19,16 @@
       }
     }
   },
+  "icons": {
+    "48": "icons/icon48.png",
+    "96": "icons/icon96.png"
+  },
   "browser_action": {
     "default_popup": "popup.html",
-    "default_title": "AI Web Summarizer"
+    "default_title": "AI Web Summarizer",
+	"default_icon": {
+      "48": "icons/icon48.png"
+    }
   },
   "content_scripts": [
     {
