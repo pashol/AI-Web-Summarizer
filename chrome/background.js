@@ -1,0 +1,219 @@
+// Helper: Sanitize headers for fetch
+const sanitizeHeader = (str) => str ? str.replace(/[^\x00-\x7F]/g, "").trim() : "";
+
+// Model configurations
+const MODELS = {
+  openrouter: [
+    { id: 'google/gemini-3-flash-preview', name: 'Google: Gemini 3 Flash Preview' },
+    { id: 'x-ai/grok-4', name: 'Grok 4' },
+    { id: 'x-ai/grok-4-fast', name: 'Grok 4 Fast' },
+    { id: 'anthropic/claude-opus-4.5', name: 'Claude 4.5 Opus' }, 
+    { id: 'anthropic/claude-haiku-4.5', name: 'Claude 4.5 Haiku' },   
+    { id: 'anthropic/claude-sonnet-4.5', name: 'Claude 4.5 Sonnet' },
+    { id: 'openai/gpt-5.2-chat', name: 'GPT-5.2 Chat' },     
+    { id: 'openai/gpt-5.2', name: 'GPT-5.2' },  
+    { id: 'openai/gpt-4o', name: 'GPT-4o' },
+    { id: 'openai/gpt-4o-mini', name: 'GPT-4o Mini' },
+    { id: 'meta-llama/llama-3.1-405b-instruct', name: 'Llama 3.1 405B' },
+    { id: 'meta-llama/llama-3.1-70b-instruct', name: 'Llama 3.1 70B' },
+    { id: 'meta-llama/llama-3.1-8b-instruct', name: 'Llama 3.1 8B' },
+    { id: 'mistralai/mistral-large-2407', name: 'Mistral Large' },
+    { id: 'perplexity/llama-3.1-sonar-large-128k-online', name: 'Perplexity Sonar' },
+    { id: 'qwen/qwen-2.5-72b-instruct', name: 'Qwen 2.5 72B' },
+    { id: 'deepseek/deepseek-chat', name: 'DeepSeek Chat' }
+  ],
+  openai: [
+    { id: 'gpt-4o', name: 'GPT-4o' },
+    { id: 'gpt-4o-mini', name: 'GPT-4o Mini' },
+    { id: 'gpt-4-turbo', name: 'GPT-4 Turbo' },
+    { id: 'gpt-3.5-turbo', name: 'GPT-3.5 Turbo' }
+  ]
+};
+
+// Create Context Menu Item on install
+chrome.runtime.onInstalled.addListener(() => {
+  chrome.contextMenus.create({
+    id: "summarize-page-window",
+    title: "Summarize This Page with AI",
+    contexts: ["all"]
+  });
+});
+
+// Handle Context Menu Click
+chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+  if (info.menuItemId === "summarize-page-window") {
+    await handleSummarizeRequest(tab, true);
+  }
+});
+
+// Handle Messages from popup and result page
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === 'summarizePage') {
+    handleSummarizeRequest(request.tab, false)
+      .then(result => sendResponse(result))
+      .catch(error => sendResponse({ error: error.message }));
+    return true;
+  }
+  
+  if (request.action === 'sendCustomPrompt') {
+    handleCustomPrompt(request.prompt)
+      .then(result => sendResponse({ summary: result }))
+      .catch(error => sendResponse({ error: error.message }));
+    return true;
+  }
+  
+  if (request.action === 'getModels') {
+    sendResponse({ models: MODELS });
+    return true;
+  }
+  
+  return false;
+});
+
+// Centralized function to handle summarization
+async function handleSummarizeRequest(tab, openInWindow) {
+  const data = await chrome.storage.local.get(['apiKey', 'provider', 'model', 'language']);
+
+  if (!data.apiKey) {
+    if (openInWindow) {
+      chrome.notifications.create({
+        type: "basic",
+        iconUrl: "icons/icon48.png",
+        title: "API Key Required",
+        message: "Please open the extension settings and save your API key first."
+      });
+    }
+    throw new Error('API key required. Please save your API key in Settings.');
+  }
+
+  try {
+    // Get content from active page using scripting API
+    const [result] = await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: extractPageContent
+    });
+    
+    const pageContent = result.result;
+    
+    // Fetch Summary
+    const summary = await getSummaryFromAI(data, pageContent, null);
+
+    if (openInWindow) {
+      // Open Dedicated Result Window
+      const newWindow = await chrome.windows.create({
+        url: chrome.runtime.getURL("result.html"),
+        type: "popup",
+        width: 600,
+        height: 700
+      });
+
+      // Send to Result Window (with delay for window load)
+      setTimeout(() => {
+        chrome.runtime.sendMessage({
+          action: 'displaySummary',
+          summary: summary,
+          title: pageContent.title,
+          url: pageContent.url
+        });
+      }, 500);
+    }
+
+    return { summary, title: pageContent.title, url: pageContent.url };
+
+  } catch (error) {
+    console.error('Summarization error:', error);
+    
+    if (openInWindow) {
+      setTimeout(() => {
+        chrome.runtime.sendMessage({ 
+          action: 'displayError', 
+          error: error.message 
+        });
+      }, 800);
+    }
+    
+    throw error;
+  }
+}
+
+// Function to inject into page for content extraction
+function extractPageContent() {
+  const clone = document.body.cloneNode(true);
+  const unwantedSelectors = [
+    'script', 'style', 'nav', 'header', 'footer', 
+    'aside', 'iframe', 'noscript', '[role="navigation"]',
+    '[role="banner"]', '[role="complementary"]', '.ad',
+    '.advertisement', '.sidebar', '.menu'
+  ];
+  
+  unwantedSelectors.forEach(selector => {
+    clone.querySelectorAll(selector).forEach(el => el.remove());
+  });
+
+  let text = clone.innerText || clone.textContent;
+  text = text.replace(/\s+/g, ' ').trim();
+  
+  return {
+    title: document.title,
+    url: window.location.href,
+    text: text.substring(0, 10000)
+  };
+}
+
+// Handle custom prompts
+async function handleCustomPrompt(prompt) {
+  const data = await chrome.storage.local.get(['apiKey', 'provider', 'model']);
+
+  if (!data.apiKey) {
+    throw new Error('API key required. Please save your API key in Settings.');
+  }
+
+  return await getSummaryFromAI(data, null, prompt);
+}
+
+// Centralized AI Logic
+async function getSummaryFromAI(settings, pageContent, customPrompt) {
+  let prompt;
+  
+  if (customPrompt) {
+    prompt = customPrompt;
+  } else {
+    const lang = settings.language || 'english';
+    const instruction = lang !== 'english' ? `\n\nIMPORTANT: Summary must be in ${lang}.` : '';
+    prompt = `Concise plain text summary (no markdown) of: ${pageContent.title}\nURL: ${pageContent.url}\n\nContent:\n${pageContent.text.substring(0, 8000)}${instruction}`;
+  }
+
+  const url = settings.provider === 'openai' 
+    ? 'https://api.openai.com/v1/chat/completions' 
+    : 'https://openrouter.ai/api/v1/chat/completions';
+
+  const defaultModel = settings.provider === 'openai' ? 'gpt-4o-mini' : 'openai/gpt-4o-mini';
+  
+  const messages = settings.provider === 'openai'
+    ? [
+        { role: 'system', content: 'You are a helpful assistant.' },
+        { role: 'user', content: prompt }
+      ]
+    : [{ role: 'user', content: prompt }];
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${sanitizeHeader(settings.apiKey)}`,
+      'X-Title': 'AI Web Summarizer'
+    },
+    body: JSON.stringify({
+      model: settings.model || defaultModel,
+      messages: messages,
+      max_tokens: customPrompt ? 1000 : 500
+    })
+  });
+
+  const resData = await response.json();
+  if (!response.ok) {
+    throw new Error(resData.error?.message || 'API Error');
+  }
+  
+  return resData.choices[0].message.content;
+}
