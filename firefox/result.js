@@ -122,7 +122,17 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
 function displaySummary(summary, title, url) {
   document.getElementById('loading').style.display = 'none';
   document.getElementById('pageTitle').textContent = title;
-  document.getElementById('pageUrl').innerHTML = `<a href="${url}" target="_blank">${url}</a>`;
+
+  // Safely create link element to prevent XSS
+  const pageUrlElement = document.getElementById('pageUrl');
+  pageUrlElement.textContent = '';
+  const linkElement = document.createElement('a');
+  linkElement.href = url;
+  linkElement.textContent = url;
+  linkElement.target = '_blank';
+  linkElement.rel = 'noopener noreferrer';
+  pageUrlElement.appendChild(linkElement);
+
   document.getElementById('summary').textContent = summary;
   document.getElementById('summary').style.display = 'block';
   document.getElementById('actions').style.display = 'flex';
