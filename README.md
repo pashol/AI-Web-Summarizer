@@ -1,8 +1,28 @@
-### **Firefox AI Web Summarizer**
+### **AI Web Summarizer**
+
+A powerful browser extension that uses advanced AI models to instantly summarize webpages, articles, and documents. It helps you save time by extracting key insights from long content with a single click.
+
+**Available for Firefox and Chrome** - Each browser has its own optimized version in dedicated folders.
 
 Word of warning: This is vibe coded. I asked Claude to give me a list of AI summarizer, and instead of providing me with a list, it created an earlier version of this exension. I kind of took it from there. I will not further enhance this exension, as it has all the points i wanted. It could use some refining for the speech synthesis, like speed and voice selection.
 
-A powerful browser extension that uses advanced AI models to instantly summarize webpages, articles, and documents. It helps you save time by extracting key insights from long content with a single click.
+#### **Repository Structure**
+
+```
+AI-Web-Summarizer/
+├── firefox/          # Firefox extension (Manifest V2)
+│   ├── manifest.json
+│   ├── popup.html
+│   ├── popup.js
+│   ├── background.js
+│   ├── content.js
+│   ├── result.html
+│   ├── result.js
+│   └── icons/
+├── chrome/           # Chrome extension (coming soon)
+│   └── (Chrome-specific files)
+└── README.md
+```
 
 #### **Key Features**
 
