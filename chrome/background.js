@@ -30,13 +30,27 @@ const MODELS = {
   ]
 };
 
-// Create Context Menu Item on install
-chrome.runtime.onInstalled.addListener(() => {
+// Create Context Menu Item on install and startup
+function createContextMenu() {
   chrome.contextMenus.create({
     id: "summarize-page-window",
     title: "Summarize This Page with AI",
     contexts: ["all"]
+  }, () => {
+    // Ignore error if menu already exists
+    if (chrome.runtime.lastError) {
+      console.log("Context menu already exists or error:", chrome.runtime.lastError.message);
+    }
   });
+}
+
+chrome.runtime.onInstalled.addListener(() => {
+  createContextMenu();
+});
+
+// Also create on startup to handle browser restarts
+chrome.runtime.onStartup.addListener(() => {
+  createContextMenu();
 });
 
 // Handle Context Menu Click

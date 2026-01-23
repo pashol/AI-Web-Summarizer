@@ -146,13 +146,13 @@ AI-Web-Summarizer/
 ## 🔧 Technical Details
 
 ### Firefox Version (Manifest V2)
-- **Version**: 1.0.10
+- **Version**: 1.0.11
 - **Min Firefox Version**: 142.0
 - **Extension ID**: `ai-summarizer-extension@yourdomain.com`
 - **Background**: Non-persistent event-driven script
 
 ### Chrome Version (Manifest V3)
-- **Version**: 1.0.10
+- **Version**: 1.0.11
 - **Background**: Service worker architecture
 - **Permissions**: activeTab, storage, contextMenus, scripting
 - **Host permissions**: `<all_urls>`
@@ -250,5 +250,5 @@ This project is open source. Feel free to use, modify, and distribute as you see
 
 ---
 
-**Version**: Firefox 1.0.10 | Chrome 1.0.10
+**Version**: Firefox 1.0.11 | Chrome 1.0.11
 **Last Updated**: January 2026
