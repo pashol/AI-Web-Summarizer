@@ -30,13 +30,27 @@ const MODELS = {
   ]
 };
 
-// 1. Create Context Menu Item on install
-browser.runtime.onInstalled.addListener(() => {
+// 1. Create Context Menu Item on install and startup
+function createContextMenu() {
   browser.contextMenus.create({
     id: "summarize-page-window",
     title: "Summarize This Page with AI",
     contexts: ["all"]
+  }, () => {
+    // Ignore error if menu already exists
+    if (browser.runtime.lastError) {
+      console.log("Context menu already exists or error:", browser.runtime.lastError.message);
+    }
   });
+}
+
+browser.runtime.onInstalled.addListener(() => {
+  createContextMenu();
+});
+
+// Also create on startup to handle Firefox restarts
+browser.runtime.onStartup.addListener(() => {
+  createContextMenu();
 });
 
 // 2. Handle Context Menu Click
