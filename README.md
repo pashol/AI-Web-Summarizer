@@ -81,7 +81,7 @@ Full-featured audio playback with:
 
 ```
 AI-Web-Summarizer/
-├── firefox/              # Firefox extension (Manifest V2, v1.0.7)
+├── firefox/              # Firefox extension (Manifest V2, v1.0.10)
 │   ├── manifest.json     # Extension configuration
 │   ├── popup.html        # Main popup interface
 │   ├── popup.js          # Popup logic and UI interactions
@@ -93,7 +93,7 @@ AI-Web-Summarizer/
 │       ├── icon48.png
 │       └── icon96.png
 │
-├── chrome/               # Chrome extension (Manifest V3, v1.0.0)
+├── chrome/               # Chrome extension (Manifest V3, v1.0.10)
 │   ├── manifest.json     # Chrome-specific configuration
 │   ├── popup.html        # Main popup interface
 │   ├── popup.js          # Popup logic (Chrome-adapted)
@@ -146,13 +146,13 @@ AI-Web-Summarizer/
 ## 🔧 Technical Details
 
 ### Firefox Version (Manifest V2)
-- **Version**: 1.0.7
+- **Version**: 1.0.10
 - **Min Firefox Version**: 142.0
 - **Extension ID**: `ai-summarizer-extension@yourdomain.com`
 - **Background**: Non-persistent event-driven script
 
 ### Chrome Version (Manifest V3)
-- **Version**: 1.0.0
+- **Version**: 1.0.10
 - **Background**: Service worker architecture
 - **Permissions**: activeTab, storage, contextMenus, scripting
 - **Host permissions**: `<all_urls>`
@@ -250,5 +250,5 @@ This project is open source. Feel free to use, modify, and distribute as you see
 
 ---
 
-**Version**: Firefox 1.0.7 | Chrome 1.0.0
+**Version**: Firefox 1.0.10 | Chrome 1.0.10
 **Last Updated**: January 2026

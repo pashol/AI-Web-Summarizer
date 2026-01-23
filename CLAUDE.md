@@ -4,7 +4,7 @@
 
 **AI Web Summarizer** is a Firefox browser extension (WebExtensions API, Manifest V2) that provides AI-powered webpage summarization. The extension uses OpenAI or OpenRouter APIs to generate concise summaries of web content, with additional features including custom prompts, multilingual support, and text-to-speech functionality.
 
-**Current Version**: 1.0.7
+**Current Version**: 1.0.10
 **Extension ID**: `ai-summarizer-extension@yourdomain.com`
 **Min Firefox Version**: 142.0
 
@@ -818,7 +818,9 @@ try {
 
 ## Version History
 
-- **1.0.7**: Current version (as of documentation creation)
+- **1.0.10**: Current version (security fix for unsafe innerHTML in result.js)
+- **1.0.9**: Previous version
+- **1.0.7**: Documentation creation
 - Development history visible in git commits
 
 ---
