@@ -10,14 +10,14 @@ A powerful browser extension that uses advanced AI models to instantly summarize
 
 ## 🚀 Quick Start
 
-### Firefox Installation (v1.0.7)
+### Firefox Installation
 1. Download or clone this repository
 2. Open Firefox and navigate to `about:debugging#/runtime/this-firefox`
 3. Click **"Load Temporary Add-on"**
 4. Select the `manifest.json` file from the `firefox/` folder
 5. The extension will appear in your toolbar
 
-### Chrome Installation (v1.0.0)
+### Chrome Installation
 1. Download or clone this repository
 2. Open Chrome and navigate to `chrome://extensions/`
 3. Enable **"Developer mode"** (toggle in top right)
