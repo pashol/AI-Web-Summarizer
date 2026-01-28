@@ -234,7 +234,7 @@ async function getSummaryFromAI(settings, pageContent, customPrompt) {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${sanitizeHeader(settings.apiKey)}`,
-      'X-Title': 'AI Web Summarizer'
+      'User-Agent': 'AI-Web-Summarizer/1.0.12'
     },
     body: JSON.stringify({
       model: settings.model || defaultModel,
