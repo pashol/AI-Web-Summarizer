@@ -1,6 +1,7 @@
 let isSpeaking = false;
 const synth = window.speechSynthesis;
 let availableVoices = [];
+let resultTabId = null;
 
 // Language code mapping
 const langMap = {
@@ -20,6 +21,18 @@ if (synth.onvoiceschanged !== undefined) {
   synth.onvoiceschanged = loadVoices;
 }
 loadVoices();
+
+// Signal to background that result page is ready
+function signalReady() {
+  browser.runtime.sendMessage({ action: 'resultReady' }).catch(err => {
+    console.log('resultReady handshake sent (bg may not be listening)');
+  });
+}
+
+// Call when page is fully loaded
+window.addEventListener('load', signalReady);
+// Also call immediately in case load already fired
+signalReady();
 
 // Populate voice dropdown
 async function populateVoiceDropdown(selectedVoiceName = null) {
@@ -111,10 +124,17 @@ async function loadTtsSettings() {
 
 // Listen for messages from background script
 browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  // Store tab ID for future targeted messages if needed
+  if (sender.tab?.id) {
+    resultTabId = sender.tab.id;
+  }
+  
   if (request.action === 'displaySummary') {
     displaySummary(request.summary, request.title, request.url);
+    sendResponse({ success: true });
   } else if (request.action === 'displayError') {
     displayError(request.error);
+    sendResponse({ success: true });
   }
   return true;
 });

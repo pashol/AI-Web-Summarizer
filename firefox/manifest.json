@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "AI Web Summarizer",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "description": "Summarize any webpage using ChatGPT or OpenRouter AI",
   "permissions": [
     "activeTab",

@@ -60,7 +60,9 @@ browser.contextMenus.onClicked.addListener(async (info, tab) => {
   }
 });
 
-// 3. Handle Messages from popup
+// 3. Handle Messages from popup and result page
+let pendingResultWindow = null; // Track window waiting for result
+
 browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'summarizePage') {
     handleSummarizeRequest(request.tab, false).then(result => {
@@ -84,6 +86,15 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
     sendResponse({ models: MODELS });
     return true;
   }
+  
+  if (request.action === 'resultReady') {
+    // Result page is ready to receive messages
+    if (pendingResultWindow) {
+      sendPendingResult(pendingResultWindow.tabId);
+      pendingResultWindow = null;
+    }
+    return false;
+  }
 });
 
 // Centralized function to handle summarization
@@ -103,49 +114,81 @@ async function handleSummarizeRequest(tab, openInWindow) {
     throw new Error('API key required. Please save your API key in Settings.');
   }
 
-  try {
-    // Get content from active page
-    const pageContent = await browser.tabs.sendMessage(tab.id, { action: 'getContent' });
-    
-    // Fetch Summary
-    const summary = await getSummaryFromAI(data, pageContent, null);
+  if (openInWindow) {
+    // Open result window immediately, then fetch content/summary
+    const newWindow = await browser.windows.create({
+      url: browser.runtime.getURL("result.html"),
+      type: "popup",
+      width: 600,
+      height: 700
+    });
 
-    if (openInWindow) {
-      // Open Dedicated Result Window
-      await browser.windows.create({
-        url: browser.runtime.getURL("result.html"),
-        type: "popup",
-        width: 600,
-        height: 700
+    // Store result window info for when page signals ready
+    const resultTabId = newWindow.tabs[0].id;
+    
+    // Fetch content and summary in background
+    try {
+      const pageContent = await browser.tabs.sendMessage(tab.id, { action: 'getContent' });
+      const summary = await getSummaryFromAI(data, pageContent, null);
+      
+      // Send result to the result window tab with retries
+      await sendWithRetry(resultTabId, {
+        action: 'displaySummary',
+        summary: summary,
+        title: pageContent.title,
+        url: pageContent.url
       });
-
-      // Send to Result Window (with delay for window load)
-      setTimeout(() => {
-        browser.runtime.sendMessage({
-          action: 'displaySummary',
-          summary: summary,
-          title: pageContent.title,
-          url: pageContent.url
+    } catch (error) {
+      console.error('Summarization error:', error);
+      // Send error to result window with retries
+      await sendWithRetry(resultTabId, {
+        action: 'displayError',
+        error: error.message
+      }).catch(() => {
+        // If all retries fail, show notification
+        browser.notifications.create({
+          type: "basic",
+          iconUrl: "icons/icon48.png",
+          title: "Summarization Failed",
+          message: error.message
         });
-      }, 100);
+      });
     }
+  } else {
+    // Popup mode: return result directly
+    try {
+      const pageContent = await browser.tabs.sendMessage(tab.id, { action: 'getContent' });
+      const summary = await getSummaryFromAI(data, pageContent, null);
+      return { summary, title: pageContent.title, url: pageContent.url };
+    } catch (error) {
+      console.error('Summarization error:', error);
+      throw error;
+    }
+  }
+}
 
-    return { summary, title: pageContent.title, url: pageContent.url };
-
+// Send message with retry logic (3 attempts, 100-150ms backoff)
+async function sendWithRetry(tabId, message, attempt = 0) {
+  const maxAttempts = 3;
+  const baseDelay = 100;
+  
+  try {
+    return await browser.tabs.sendMessage(tabId, message);
   } catch (error) {
-    console.error('Summarization error:', error);
-    
-    if (openInWindow) {
-      setTimeout(() => {
-        browser.runtime.sendMessage({ 
-          action: 'displayError', 
-          error: error.message 
-        });
-      }, 800);
+    if (attempt < maxAttempts - 1) {
+      const delay = baseDelay + (attempt * 50);
+      await new Promise(resolve => setTimeout(resolve, delay));
+      return sendWithRetry(tabId, message, attempt + 1);
     }
-    
     throw error;
   }
+}
+
+// Helper to send result once result page signals ready
+async function sendPendingResult(tabId) {
+  // This is called when resultReady message arrives
+  // The actual data is passed via pendingResultWindow context
+  // This function exists for future use if needed
 }
 
 // Handle custom prompts
