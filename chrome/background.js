@@ -258,13 +258,20 @@ async function getSummaryFromAI(settings, pageContent, customPrompt) {
       ]
     : [{ role: 'user', content: prompt }];
 
+  // Build headers with OpenRouter-specific identity headers
+  const headers = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${sanitizeHeader(settings.apiKey)}`
+  };
+
+  if (settings.provider === 'openrouter') {
+    headers['HTTP-Referer'] = 'https://github.com/pashol/AI-Web-Summarizer';
+    headers['X-Title'] = 'AI Web Summarizer';
+  }
+
   const response = await fetch(url, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${sanitizeHeader(settings.apiKey)}`,
-      'User-Agent': 'AI-Web-Summarizer/1.0.12'
-    },
+    headers: headers,
     body: JSON.stringify({
       model: settings.model || defaultModel,
       messages: messages,
