@@ -37,9 +37,42 @@
     .loading { text-align: center; color: #666; font-style: italic; }
     .hidden { display: none; }
     .info { font-size: 11px; color: #777; margin-top: 4px; }
+    .warning-banner {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      color: #856404;
+      padding: 10px 12px;
+      border-radius: 4px;
+      margin-bottom: 12px;
+      font-size: 13px;
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+    .warning-banner.show { display: flex; }
+    .warning-banner .icon { font-size: 16px; }
+    .settings.required {
+      border: 2px solid #dc3545;
+      background: #fff5f5;
+    }
+    #apiKey.required {
+      border-color: #dc3545;
+      box-shadow: 0 0 0 2px rgba(220,53,69,0.25);
+    }
+    button.disabled-feature {
+      opacity: 0.5;
+      cursor: not-allowed;
+      background: #6c757d;
+    }
+    button.disabled-feature:hover { background: #6c757d; }
   </style>
 </head>
 <body>
+  <div class="warning-banner" id="apiKeyWarning">
+    <span class="icon">⚠️</span>
+    <span><strong>API Key Required</strong> - Please configure your AI provider settings below to use this extension</span>
+  </div>
+  
   <div class="header">
     <h2>🤖 AI Web Summarizer</h2>
     <div class="header-buttons">

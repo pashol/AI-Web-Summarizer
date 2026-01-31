@@ -2,6 +2,7 @@ let isSpeaking = false;
 const synth = window.speechSynthesis;
 let MODELS = {};
 let availableVoices = [];
+let hasApiKey = false;
 
 // Language code mapping
 const langMap = {
@@ -122,14 +123,36 @@ function updateModelOptions(selectedModelId) {
 
 // Toggle panels
 document.getElementById('toggleSettingsBtn').addEventListener('click', () => {
+  // Prevent hiding settings panel when no API key is configured
+  if (!hasApiKey && !document.getElementById('settingsPanel').classList.contains('hidden')) {
+    return; // Don't allow closing settings when API key is required
+  }
   document.getElementById('settingsPanel').classList.toggle('hidden');
 });
 
 document.getElementById('toggleChatBtn').addEventListener('click', () => {
+  if (!hasApiKey) {
+    // Show alert and keep settings open
+    const result = document.getElementById('result');
+    result.className = 'summary error';
+    result.textContent = 'Please configure your API key in Settings first';
+    result.classList.remove('hidden');
+    setTimeout(() => result.classList.add('hidden'), 3000);
+    return;
+  }
   document.getElementById('chatPanel').classList.toggle('hidden');
 });
 
 document.getElementById('toggleTtsBtn').addEventListener('click', () => {
+  if (!hasApiKey) {
+    // Show alert and keep settings open
+    const result = document.getElementById('result');
+    result.className = 'summary error';
+    result.textContent = 'Please configure your API key in Settings first';
+    result.classList.remove('hidden');
+    setTimeout(() => result.classList.add('hidden'), 3000);
+    return;
+  }
   document.getElementById('ttsPanel').classList.toggle('hidden');
 });
 
@@ -148,6 +171,82 @@ document.getElementById('language').addEventListener('change', () => {
     populateVoiceDropdown(data.ttsVoice);
   });
 });
+
+// Show/hide API key required state
+function showSetupRequired() {
+  hasApiKey = false;
+  
+  // Show warning banner
+  document.getElementById('apiKeyWarning').classList.add('show');
+  
+  // Disable main action buttons
+  const summarizeBtn = document.getElementById('summarizeBtn');
+  const sendPromptBtn = document.getElementById('sendPromptBtn');
+  const toggleChatBtn = document.getElementById('toggleChatBtn');
+  const toggleTtsBtn = document.getElementById('toggleTtsBtn');
+  
+  summarizeBtn.disabled = true;
+  summarizeBtn.classList.add('disabled-feature');
+  summarizeBtn.title = 'Please configure API key in Settings first';
+  
+  sendPromptBtn.disabled = true;
+  sendPromptBtn.classList.add('disabled-feature');
+  sendPromptBtn.title = 'Please configure API key in Settings first';
+  
+  toggleChatBtn.disabled = true;
+  toggleChatBtn.classList.add('disabled-feature');
+  toggleChatBtn.title = 'Please configure API key first';
+  
+  toggleTtsBtn.disabled = true;
+  toggleTtsBtn.classList.add('disabled-feature');
+  toggleTtsBtn.title = 'Please configure API key first';
+  
+  // Force settings panel visible with required styling
+  const settingsPanel = document.getElementById('settingsPanel');
+  settingsPanel.classList.remove('hidden');
+  settingsPanel.classList.add('required');
+  
+  // Add required styling to API key input
+  document.getElementById('apiKey').classList.add('required');
+  
+  // Hide speak button
+  document.getElementById('speakBtn').style.display = 'none';
+}
+
+// Enable features when API key is present
+function enableFeatures() {
+  hasApiKey = true;
+  
+  // Hide warning banner
+  document.getElementById('apiKeyWarning').classList.remove('show');
+  
+  // Enable main action buttons
+  const summarizeBtn = document.getElementById('summarizeBtn');
+  const sendPromptBtn = document.getElementById('sendPromptBtn');
+  const toggleChatBtn = document.getElementById('toggleChatBtn');
+  const toggleTtsBtn = document.getElementById('toggleTtsBtn');
+  
+  summarizeBtn.disabled = false;
+  summarizeBtn.classList.remove('disabled-feature');
+  summarizeBtn.title = '';
+  
+  sendPromptBtn.disabled = false;
+  sendPromptBtn.classList.remove('disabled-feature');
+  sendPromptBtn.title = '';
+  
+  toggleChatBtn.disabled = false;
+  toggleChatBtn.classList.remove('disabled-feature');
+  toggleChatBtn.title = '';
+  
+  toggleTtsBtn.disabled = false;
+  toggleTtsBtn.classList.remove('disabled-feature');
+  toggleTtsBtn.title = '';
+  
+  // Remove required styling
+  const settingsPanel = document.getElementById('settingsPanel');
+  settingsPanel.classList.remove('required');
+  document.getElementById('apiKey').classList.remove('required');
+}
 
 // Load settings
 function loadSettings() {
@@ -172,9 +271,11 @@ function loadSettings() {
     updateModelOptions(data.model);
     populateVoiceDropdown(data.ttsVoice);
     
-    // Show settings panel if no API key
+    // Check API key and set UI state
     if (!data.apiKey) {
-      document.getElementById('settingsPanel').classList.remove('hidden');
+      showSetupRequired();
+    } else {
+      enableFeatures();
     }
   });
 }
@@ -200,11 +301,17 @@ document.getElementById('saveSettingsBtn').addEventListener('click', () => {
     });
     
     if (apiKey) {
+      // Enable features if we just added an API key
+      if (!hasApiKey) {
+        enableFeatures();
+      }
       setTimeout(() => {
         document.getElementById('settingsPanel').classList.add('hidden');
         result.classList.add('hidden');
       }, 1500);
     } else {
+      // If API key was removed, show setup required again
+      showSetupRequired();
       setTimeout(() => result.classList.add('hidden'), 2000);
     }
   });

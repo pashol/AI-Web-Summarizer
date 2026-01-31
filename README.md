@@ -10,9 +10,30 @@ A powerful browser extension that uses advanced AI models to instantly summarize
 
 ---
 
-## 📰 Latest Release: v1.0.13
+## 📰 Latest Release: v1.0.14
 
 ### ✨ What's New
+- **Fixed**: Chrome Web Store rejection - "No cookie auth credentials found" error
+  - Clear visual indication when API key is required (yellow warning banner)
+  - All features disabled until API key is configured
+  - Settings panel locked open until API key is saved
+  - API key input field highlighted in red to draw attention
+- **Improved**: User onboarding experience
+  - Impossible to accidentally trigger API calls without credentials
+  - Clear error messages when attempting to use features without API key
+  - Smooth transition to enabled state once API key is saved
+
+### 🔧 Technical Improvements
+- Added `hasApiKey` state management in popup.js
+- Implemented `showSetupRequired()` and `enableFeatures()` functions
+- Updated toggle buttons to respect API key requirement
+- Synchronized changes across Chrome (Manifest V3) and Firefox (Manifest V2)
+
+---
+
+## 📰 Previous Release: v1.0.13
+
+### ✨ What Was New
 - **Fixed**: Result window no longer stays stuck on "Generating AI summary..." 
   - Implemented handshake protocol for reliable message delivery
   - Window opens immediately with smart retry logic
@@ -269,5 +290,5 @@ This project is open source. Feel free to use, modify, and distribute as you see
 
 ---
 
-**Version**: Firefox 1.0.13 | Chrome 1.0.13
-**Last Updated**: January 29, 2026
+**Version**: Firefox 1.0.14 | Chrome 1.0.14
+**Last Updated**: January 31, 2026
