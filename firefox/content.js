@@ -3,11 +3,11 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'getContent') {
     const selectedText = window.getSelection().toString().trim();
     const fullText = extractMainContent();
-    const wasTruncated = fullText.length > 10000;
+    const wasTruncated = fullText.length > 12000;
     const pageContent = {
       title: document.title,
       url: window.location.href,
-      text: fullText.substring(0, 10000),
+      text: fullText.substring(0, 12000),
       selectedText: selectedText || null,
       wasTruncated
     };
