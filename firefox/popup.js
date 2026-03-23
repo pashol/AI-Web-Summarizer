@@ -439,6 +439,12 @@ document.getElementById('summarizeBtn').addEventListener('click', async () => {
       badge.textContent = 'Summarized selected text';
       result.prepend(badge);
     }
+    if (response.wasTruncated) {
+      const note = document.createElement('div');
+      note.style.cssText = 'font-size: 11px; color: #888; margin-top: 8px; font-style: italic;';
+      note.textContent = 'Note: page content was truncated to 10,000 characters.';
+      result.appendChild(note);
+    }
     speakBtn.style.display = 'block';
   } catch (error) {
     result.className = 'summary error';
