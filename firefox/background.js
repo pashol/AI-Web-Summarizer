@@ -376,9 +376,7 @@ async function getFactCheckFromAI(settings, pageContent) {
 
   const role = 'You are a critical investigative journalist. Verify the factual claims in the following content with rigorous skepticism.';
 
-  const prompt = `${role}
-
-Analyze the content and identify the 5-8 most significant factual claims. For each claim, determine if it is TRUE, FALSE, or UNVERIFIED based on your knowledge.
+  const taskPrompt = `Analyze the content and identify the 5-8 most significant factual claims. For each claim, determine if it is TRUE, FALSE, or UNVERIFIED based on your knowledge.
 
 Respond in EXACTLY this plain text format (no markdown, no asterisks):
 
@@ -402,12 +400,14 @@ ${pageContent.text.substring(0, 8000)}`;
 
   const defaultModel = settings.provider === 'openai' ? 'gpt-4o-mini' : 'openai/gpt-4o-mini';
 
+  // OpenAI: role in system message, task in user message
+  // OpenRouter: role + task combined in user message (no system message)
   const messages = settings.provider === 'openai'
     ? [
         { role: 'system', content: role },
-        { role: 'user', content: prompt }
+        { role: 'user', content: taskPrompt }
       ]
-    : [{ role: 'user', content: prompt }];
+    : [{ role: 'user', content: `${role}\n\n${taskPrompt}` }];
 
   const headers = {
     'Content-Type': 'application/json',
