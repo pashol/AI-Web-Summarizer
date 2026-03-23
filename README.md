@@ -68,27 +68,39 @@ A powerful browser extension that uses advanced AI models to instantly summarize
 
 ## 🚀 Quick Start
 
+### Prerequisites
+You need an API key from one of the following providers:
+- **OpenAI**: Get a key at [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
+- **OpenRouter**: Get a key at [openrouter.ai/keys](https://openrouter.ai/keys) (access to 30+ models, including free tiers)
+
 ### Firefox Installation
-1. Download or clone this repository
+1. [Download or clone this repository](https://github.com/pashol/AI-Web-Summarizer)
 2. Open Firefox and navigate to `about:debugging#/runtime/this-firefox`
-3. Click **"Load Temporary Add-on"**
-4. Select the `manifest.json` file from the `firefox/` folder
-5. The extension will appear in your toolbar
+3. Click **"Load Temporary Add-on..."**
+4. Browse into the `firefox/` folder and select `manifest.json`
+5. The AI Web Summarizer icon will appear in your Firefox toolbar
+
+> **Note**: Temporary add-ons are removed when Firefox restarts. For persistent installation, the extension can be submitted to [addons.mozilla.org](https://addons.mozilla.org/).
 
 ### Chrome Installation
-1. Download or clone this repository
+1. [Download or clone this repository](https://github.com/pashol/AI-Web-Summarizer)
 2. Open Chrome and navigate to `chrome://extensions/`
-3. Enable **"Developer mode"** (toggle in top right)
+3. Enable **"Developer mode"** using the toggle in the top-right corner
 4. Click **"Load unpacked"**
-5. Select the `chrome/` folder
-6. The extension will appear in your toolbar
+5. Select the `chrome/` folder (not a file inside it — the whole folder)
+6. The AI Web Summarizer icon will appear in your Chrome toolbar
 
-### Setup
+> **Note**: Unpacked extensions persist across restarts. Chrome may show a warning about developer mode extensions — this is normal.
+
+### First-Time Setup
 1. Click the extension icon in your toolbar
-2. Enter your **OpenAI API key** or **OpenRouter API key**
-3. Select your preferred AI provider and model
-4. Choose your summary language
-5. Start summarizing!
+2. The **Settings panel** will open automatically (required on first use)
+3. Paste your **API key** into the API Key field
+4. Select your **provider** (OpenAI or OpenRouter)
+5. Choose a **model** from the dropdown (GPT-4o Mini is a good starting point)
+6. Select your preferred **summary language**
+7. Click **Save Settings**
+8. You're ready — navigate to any webpage and click **"Summarize This Page"**
 
 ---
 
@@ -139,7 +151,7 @@ Full-featured audio playback with:
 
 ```
 AI-Web-Summarizer/
-├── firefox/              # Firefox extension (Manifest V2, v1.0.13)
+├── firefox/              # Firefox extension (Manifest V2, v1.0.15)
 │   ├── manifest.json     # Extension configuration
 │   ├── popup.html        # Main popup interface
 │   ├── popup.js          # Popup logic and UI interactions
@@ -151,7 +163,7 @@ AI-Web-Summarizer/
 │       ├── icon48.png
 │       └── icon96.png
 │
-├── chrome/               # Chrome extension (Manifest V3, v1.0.13)
+├── chrome/               # Chrome extension (Manifest V3, v1.0.15)
 │   ├── manifest.json     # Chrome-specific configuration
 │   ├── popup.html        # Main popup interface
 │   ├── popup.js          # Popup logic (Chrome-adapted)
@@ -204,13 +216,13 @@ AI-Web-Summarizer/
 ## 🔧 Technical Details
 
 ### Firefox Version (Manifest V2)
-- **Version**: 1.0.13
+- **Version**: 1.0.15
 - **Min Firefox Version**: 142.0
 - **Extension ID**: `ai-summarizer-extension@yourdomain.com`
 - **Background**: Non-persistent event-driven script
 
 ### Chrome Version (Manifest V3)
-- **Version**: 1.0.13
+- **Version**: 1.0.15
 - **Background**: Service worker architecture
 - **Permissions**: activeTab, storage, contextMenus, scripting
 - **Host permissions**: `<all_urls>`
@@ -308,5 +320,5 @@ This project is open source. Feel free to use, modify, and distribute as you see
 
 ---
 
-**Version**: Firefox 1.0.14 | Chrome 1.0.14
-**Last Updated**: January 31, 2026
+**Version**: Firefox 1.0.15 | Chrome 1.0.15
+**Last Updated**: March 23, 2026
