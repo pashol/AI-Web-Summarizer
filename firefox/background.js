@@ -34,7 +34,7 @@ const MODELS = {
 function createContextMenu() {
   browser.contextMenus.create({
     id: "summarize-page-window",
-    title: "Summarize This Page with AI",
+    title: "Summarize this",
     contexts: ["all"]
   }, () => {
     // Ignore error if menu already exists
