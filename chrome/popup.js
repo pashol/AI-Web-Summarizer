@@ -188,7 +188,12 @@ function showSetupRequired() {
   summarizeBtn.disabled = true;
   summarizeBtn.classList.add('disabled-feature');
   summarizeBtn.title = 'Please configure API key in Settings first';
-  
+
+  const factCheckBtn = document.getElementById('factCheckBtn');
+  factCheckBtn.disabled = true;
+  factCheckBtn.classList.add('disabled-feature');
+  factCheckBtn.title = 'Please configure API key in Settings first';
+
   sendPromptBtn.disabled = true;
   sendPromptBtn.classList.add('disabled-feature');
   sendPromptBtn.title = 'Please configure API key in Settings first';
@@ -229,7 +234,12 @@ function enableFeatures() {
   summarizeBtn.disabled = false;
   summarizeBtn.classList.remove('disabled-feature');
   summarizeBtn.title = '';
-  
+
+  const factCheckBtn = document.getElementById('factCheckBtn');
+  factCheckBtn.disabled = false;
+  factCheckBtn.classList.remove('disabled-feature');
+  factCheckBtn.title = '';
+
   sendPromptBtn.disabled = false;
   sendPromptBtn.classList.remove('disabled-feature');
   sendPromptBtn.title = '';
@@ -395,6 +405,46 @@ document.getElementById('sendPromptBtn').addEventListener('click', async () => {
     result.className = 'summary error';
     result.textContent = `Error: ${error.message}`;
     
+    if (error.message.includes('API key')) {
+      document.getElementById('settingsPanel').classList.remove('hidden');
+    }
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+// Fact-check current page
+document.getElementById('factCheckBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('factCheckBtn');
+  const result = document.getElementById('result');
+  const speakBtn = document.getElementById('speakBtn');
+
+  synth.cancel();
+  updateSpeakButton(false);
+  speakBtn.style.display = 'none';
+
+  btn.disabled = true;
+  result.className = 'summary loading';
+  result.textContent = 'Fact-checking with AI...';
+  result.classList.remove('hidden');
+
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+
+    const response = await chrome.runtime.sendMessage({
+      action: 'factCheckPage',
+      tab: tab
+    });
+
+    if (response.error) throw new Error(response.error);
+
+    result.className = 'summary';
+    result.textContent = response.factCheck;
+    speakBtn.style.display = 'block';
+  } catch (error) {
+    result.className = 'summary error';
+    result.textContent = `Error: ${error.message}`;
+
     if (error.message.includes('API key')) {
       document.getElementById('settingsPanel').classList.remove('hidden');
     }

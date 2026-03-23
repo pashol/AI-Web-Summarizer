@@ -34,6 +34,15 @@ window.addEventListener('load', signalReady);
 // Also call immediately in case load already fired
 signalReady();
 
+// Detect mode from URL query parameter
+const urlParams = new URLSearchParams(window.location.search);
+const pageMode = urlParams.get('mode') || 'summary';
+if (pageMode === 'factcheck') {
+  const loadingP = document.querySelector('#loading p');
+  if (loadingP) loadingP.textContent = 'Fact-checking with AI...';
+  document.title = 'AI Fact Check Result';
+}
+
 // Populate voice dropdown
 async function populateVoiceDropdown(selectedVoiceName = null) {
   const voiceSelect = document.getElementById('ttsVoice');
@@ -132,6 +141,9 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'displaySummary') {
     displaySummary(request.summary, request.title, request.url);
     sendResponse({ success: true });
+  } else if (request.action === 'displayFactCheck') {
+    displayFactCheck(request.factCheck, request.title, request.url, request.isSelectedText);
+    sendResponse({ success: true });
   } else if (request.action === 'displayError') {
     displayError(request.error);
     sendResponse({ success: true });
@@ -156,6 +168,34 @@ function displaySummary(summary, title, url) {
   document.getElementById('summary').textContent = summary;
   document.getElementById('summary').style.display = 'block';
   document.getElementById('actions').style.display = 'flex';
+}
+
+function displayFactCheck(factCheck, title, url, isSelectedText) {
+  document.getElementById('loading').style.display = 'none';
+  document.title = 'AI Fact Check Result';
+  document.getElementById('pageTitle').textContent = title;
+
+  const pageUrlElement = document.getElementById('pageUrl');
+  pageUrlElement.textContent = '';
+  const linkElement = document.createElement('a');
+  linkElement.href = url;
+  linkElement.textContent = url;
+  linkElement.target = '_blank';
+  linkElement.rel = 'noopener noreferrer';
+  pageUrlElement.appendChild(linkElement);
+
+  if (isSelectedText) {
+    const note = document.createElement('div');
+    note.style.cssText = 'font-size: 12px; color: #888; margin-top: 4px; font-style: italic;';
+    note.textContent = '(Fact-checking selected text only)';
+    pageUrlElement.appendChild(note);
+  }
+
+  const summaryEl = document.getElementById('summary');
+  summaryEl.textContent = factCheck;
+  summaryEl.style.display = 'block';
+  document.getElementById('actions').style.display = 'flex';
+  document.getElementById('copyBtn').textContent = '📋 Copy Fact Check';
 }
 
 function displayError(error) {
