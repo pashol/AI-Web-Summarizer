@@ -30,7 +30,7 @@ const MODELS = {
   ]
 };
 
-// Create Context Menu Item on install and startup
+// Create Context Menu Items on install and startup
 function createContextMenu() {
   chrome.contextMenus.create({
     id: "summarize-page-window",
@@ -38,6 +38,16 @@ function createContextMenu() {
     contexts: ["all"]
   }, () => {
     // Ignore error if menu already exists
+    if (chrome.runtime.lastError) {
+      console.log("Context menu already exists or error:", chrome.runtime.lastError.message);
+    }
+  });
+
+  chrome.contextMenus.create({
+    id: "factcheck-page-window",
+    title: "Fact Check This",
+    contexts: ["all"]
+  }, () => {
     if (chrome.runtime.lastError) {
       console.log("Context menu already exists or error:", chrome.runtime.lastError.message);
     }
@@ -57,6 +67,8 @@ chrome.runtime.onStartup.addListener(() => {
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId === "summarize-page-window") {
     await handleSummarizeRequest(tab, true);
+  } else if (info.menuItemId === "factcheck-page-window") {
+    await handleFactCheckRequest(tab, info.selectionText || null);
   }
 });
 
@@ -83,6 +95,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true;
   }
   
+  if (request.action === 'factCheckPage') {
+    handleFactCheckPageFromPopup(request.tab)
+      .then(result => sendResponse(result))
+      .catch(error => sendResponse({ error: error.message }));
+    return true;
+  }
+
   if (request.action === 'resultReady') {
     // Result page is ready to receive messages
     if (pendingResultWindow) {
@@ -172,6 +191,83 @@ async function handleSummarizeRequest(tab, openInWindow) {
       throw error;
     }
   }
+}
+
+// Fact-check request from context menu (opens result window)
+async function handleFactCheckRequest(tab, selectedText) {
+  const data = await chrome.storage.local.get(['apiKey', 'provider', 'model', 'language']);
+
+  if (!data.apiKey) {
+    chrome.notifications.create({
+      type: "basic",
+      iconUrl: "icons/icon48.png",
+      title: "API Key Required",
+      message: "Please open the extension settings and save your API key first."
+    });
+    return;
+  }
+
+  const newWindow = await chrome.windows.create({
+    url: chrome.runtime.getURL("result.html") + "?mode=factcheck",
+    type: "popup",
+    width: 600,
+    height: 700
+  });
+
+  const resultTabId = newWindow.tabs[0].id;
+
+  try {
+    let pageContent;
+    if (selectedText) {
+      pageContent = { title: tab.title || 'Selected Text', url: tab.url || '', text: selectedText };
+    } else {
+      const [result] = await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        func: extractPageContent
+      });
+      pageContent = result.result;
+    }
+
+    const factCheck = await getFactCheckFromAI(data, pageContent);
+
+    await sendWithRetry(resultTabId, {
+      action: 'displayFactCheck',
+      factCheck: factCheck,
+      title: pageContent.title,
+      url: pageContent.url,
+      isSelectedText: !!selectedText
+    });
+  } catch (error) {
+    console.error('Fact-check error:', error);
+    await sendWithRetry(resultTabId, {
+      action: 'displayError',
+      error: error.message
+    }).catch(() => {
+      chrome.notifications.create({
+        type: "basic",
+        iconUrl: "icons/icon48.png",
+        title: "Fact Check Failed",
+        message: error.message
+      });
+    });
+  }
+}
+
+// Fact-check request from popup (returns result directly)
+async function handleFactCheckPageFromPopup(tab) {
+  const data = await chrome.storage.local.get(['apiKey', 'provider', 'model', 'language']);
+
+  if (!data.apiKey) {
+    throw new Error('API key required. Please save your API key in Settings.');
+  }
+
+  const [result] = await chrome.scripting.executeScript({
+    target: { tabId: tab.id },
+    func: extractPageContent
+  });
+  const pageContent = result.result;
+  const factCheck = await getFactCheckFromAI(data, pageContent);
+  return { factCheck, title: pageContent.title, url: pageContent.url };
 }
 
 // Send message with retry logic (3 attempts, 100-150ms backoff)
@@ -284,5 +380,73 @@ async function getSummaryFromAI(settings, pageContent, customPrompt) {
     throw new Error(resData.error?.message || 'API Error');
   }
   
+  return resData.choices[0].message.content;
+}
+
+// Fact-check AI logic
+async function getFactCheckFromAI(settings, pageContent) {
+  const lang = settings.language || 'english';
+  const langInstruction = lang !== 'english' ? `\n\nIMPORTANT: Your entire response must be in ${lang}.` : '';
+
+  const role = 'You are a critical investigative journalist. Verify the factual claims in the following content with rigorous skepticism.';
+
+  const prompt = `${role}
+
+Analyze the content and identify the 5-8 most significant factual claims. For each claim, determine if it is TRUE, FALSE, or UNVERIFIED based on your knowledge.
+
+Respond in EXACTLY this plain text format (no markdown, no asterisks):
+
+Overall: [one sentence summarizing the overall credibility of this content]
+
+✅ TRUE (1): [specific claim] → [brief explanation of why it is true]
+❌ FALSE (2): [specific claim] → [brief explanation of what is actually true]
+⚠️ UNVERIFIED (3): [specific claim] → [brief explanation of why this is hard to verify]
+
+Use the exact emoji prefixes shown. Number each claim sequentially across all categories. Do not include external links or URLs.${langInstruction}
+
+Page title: ${pageContent.title}
+URL: ${pageContent.url}
+
+Content:
+${pageContent.text.substring(0, 8000)}`;
+
+  const url = settings.provider === 'openai'
+    ? 'https://api.openai.com/v1/chat/completions'
+    : 'https://openrouter.ai/api/v1/chat/completions';
+
+  const defaultModel = settings.provider === 'openai' ? 'gpt-4o-mini' : 'openai/gpt-4o-mini';
+
+  const messages = settings.provider === 'openai'
+    ? [
+        { role: 'system', content: role },
+        { role: 'user', content: prompt }
+      ]
+    : [{ role: 'user', content: prompt }];
+
+  const headers = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${sanitizeHeader(settings.apiKey)}`
+  };
+
+  if (settings.provider === 'openrouter') {
+    headers['HTTP-Referer'] = 'https://github.com/pashol/AI-Web-Summarizer';
+    headers['X-Title'] = 'AI Web Summarizer';
+  }
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: headers,
+    body: JSON.stringify({
+      model: settings.model || defaultModel,
+      messages: messages,
+      max_tokens: 1500
+    })
+  });
+
+  const resData = await response.json();
+  if (!response.ok) {
+    throw new Error(resData.error?.message || 'API Error');
+  }
+
   return resData.choices[0].message.content;
 }
