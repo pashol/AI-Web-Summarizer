@@ -14,7 +14,6 @@ const langMap = {
 // Load voices
 function loadVoices() {
   availableVoices = synth.getVoices();
-  loadTtsSettings();
 }
 
 if (synth.onvoiceschanged !== undefined) {
@@ -43,52 +42,6 @@ if (pageMode === 'factcheck') {
   document.title = 'AI Fact Check Result';
 }
 
-// Populate voice dropdown
-async function populateVoiceDropdown(selectedVoiceName = null) {
-  const voiceSelect = document.getElementById('ttsVoice');
-  const data = await browser.storage.local.get(['language']);
-  const currentLang = data.language || 'english';
-  const langCode = langMap[currentLang] || 'en';
-  
-  voiceSelect.innerHTML = '';
-  
-  // Default option
-  const defaultOpt = document.createElement('option');
-  defaultOpt.value = '';
-  defaultOpt.textContent = '— Auto (Best Available) —';
-  voiceSelect.appendChild(defaultOpt);
-  
-  // Filter voices
-  const filteredVoices = availableVoices.filter(v => v.lang.startsWith(langCode));
-  const otherVoices = availableVoices.filter(v => !v.lang.startsWith(langCode));
-  
-  if (filteredVoices.length > 0) {
-    const group = document.createElement('optgroup');
-    group.label = `${currentLang.charAt(0).toUpperCase() + currentLang.slice(1)} Voices`;
-    filteredVoices.forEach(voice => {
-      const opt = document.createElement('option');
-      opt.value = voice.name;
-      opt.textContent = `${voice.name} (${voice.lang})`;
-      if (voice.name === selectedVoiceName) opt.selected = true;
-      group.appendChild(opt);
-    });
-    voiceSelect.appendChild(group);
-  }
-  
-  if (otherVoices.length > 0) {
-    const group = document.createElement('optgroup');
-    group.label = 'Other Voices';
-    otherVoices.forEach(voice => {
-      const opt = document.createElement('option');
-      opt.value = voice.name;
-      opt.textContent = `${voice.name} (${voice.lang})`;
-      if (voice.name === selectedVoiceName) opt.selected = true;
-      group.appendChild(opt);
-    });
-    voiceSelect.appendChild(group);
-  }
-}
-
 // Get best voice
 async function getBestVoice(preferredVoiceName) {
   const data = await browser.storage.local.get(['language']);
@@ -113,22 +66,6 @@ async function getBestVoice(preferredVoiceName) {
   
   // 4. System default
   return availableVoices.find(v => v.default) || availableVoices[0] || null;
-}
-
-// Load TTS settings
-async function loadTtsSettings() {
-  const data = await browser.storage.local.get(['ttsRate', 'ttsPitch', 'ttsVoice']);
-  
-  if (data.ttsRate) {
-    document.getElementById('ttsRate').value = data.ttsRate;
-    document.getElementById('ttsRateValue').textContent = `${data.ttsRate}x`;
-  }
-  if (data.ttsPitch) {
-    document.getElementById('ttsPitch').value = data.ttsPitch;
-    document.getElementById('ttsPitchValue').textContent = data.ttsPitch;
-  }
-  
-  populateVoiceDropdown(data.ttsVoice);
 }
 
 // Listen for messages from background script
@@ -203,32 +140,6 @@ function displayError(error) {
   document.getElementById('error').textContent = `Error: ${error}`;
   document.getElementById('error').style.display = 'block';
 }
-
-// Toggle TTS panel
-document.getElementById('toggleTtsBtn').addEventListener('click', () => {
-  document.getElementById('ttsPanel').classList.toggle('hidden');
-});
-
-// Slider displays
-document.getElementById('ttsRate').addEventListener('input', (e) => {
-  document.getElementById('ttsRateValue').textContent = `${e.target.value}x`;
-});
-
-document.getElementById('ttsPitch').addEventListener('input', (e) => {
-  document.getElementById('ttsPitchValue').textContent = e.target.value;
-});
-
-// Save TTS settings
-document.getElementById('saveTtsBtn').addEventListener('click', async () => {
-  const ttsRate = document.getElementById('ttsRate').value;
-  const ttsPitch = document.getElementById('ttsPitch').value;
-  const ttsVoice = document.getElementById('ttsVoice').value;
-
-  await browser.storage.local.set({ ttsRate, ttsPitch, ttsVoice });
-  
-  document.getElementById('ttsPanel').classList.add('hidden');
-  showCopiedNotification('TTS settings saved!');
-});
 
 // Read aloud with custom settings
 document.getElementById('speakBtn').addEventListener('click', async () => {

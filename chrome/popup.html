@@ -9,12 +9,11 @@
     .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
     h2 { margin: 0; font-size: 18px; color: #333; }
     .header-buttons { display: flex; gap: 8px; }
-    #toggleSettingsBtn, #toggleChatBtn, #toggleTtsBtn { padding: 6px 12px; background: #6c757d; color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer; width: auto; margin: 0; }
-    #toggleSettingsBtn:hover, #toggleChatBtn:hover, #toggleTtsBtn:hover { background: #5a6268; }
+    #toggleSettingsBtn, #toggleChatBtn { padding: 6px 12px; background: #6c757d; color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer; width: auto; margin: 0; }
+    #toggleSettingsBtn:hover, #toggleChatBtn:hover { background: #5a6268; }
     .settings { margin-bottom: 16px; padding: 12px; background: #f5f5f5; border-radius: 6px; }
     .settings.hidden { display: none; }
-    .tts-settings { margin-bottom: 16px; padding: 12px; background: #f0fff0; border-radius: 6px; }
-    .tts-settings.hidden { display: none; }
+    .settings-divider { font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.5px; border-top: 1px solid #ddd; margin: 4px 0 14px; padding-top: 12px; }
     .chat-panel { margin-bottom: 16px; padding: 12px; background: #f0f8ff; border-radius: 6px; }
     .chat-panel.hidden { display: none; }
     label { display: block; margin-bottom: 8px; font-size: 13px; font-weight: 500; color: #555; }
@@ -40,6 +39,7 @@
     .summary { margin-top: 16px; padding: 12px; background: #f9f9f9; border-radius: 6px; border: 1px solid #e0e0e0; max-height: 400px; overflow-y: auto; font-size: 13px; line-height: 1.6; color: #333; white-space: pre-wrap; }
     .error { background: #fff3f3; border-color: #ffcccc; color: #c00; }
     .loading { text-align: center; color: #666; font-style: italic; }
+    .selected-text-badge { font-size: 11px; color: #555; background: #e8f4fd; border: 1px solid #b3d7f0; border-radius: 4px; padding: 2px 6px; margin-bottom: 8px; display: inline-block; font-style: normal; }
     .hidden { display: none; }
     .info { font-size: 11px; color: #777; margin-top: 4px; }
     .warning-banner {
@@ -82,7 +82,6 @@
     <h2>🤖 AI Web Summarizer</h2>
     <div class="header-buttons">
       <button id="toggleChatBtn">💬 Chat</button>
-      <button id="toggleTtsBtn">🔊 TTS</button>
       <button id="toggleSettingsBtn">⚙️ Settings</button>
     </div>
   </div>
@@ -119,11 +118,8 @@
       <option value="turkish">Turkish (Türkçe)</option>
     </select>
     
-    <button id="saveSettingsBtn">Save Settings</button>
-    <a id="donateBtn" href="https://ko-fi.com/gggentii" target="_blank">❤️ Donate</a>
-  </div>
+    <div class="settings-divider">Voice &amp; TTS</div>
 
-  <div class="tts-settings hidden" id="ttsPanel">
     <label>Voice:</label>
     <select id="ttsVoice"></select>
 
@@ -139,8 +135,9 @@
       <div class="slider-value" id="ttsPitchValue">1.0</div>
     </div>
 
-    <button id="saveTtsBtn">Save TTS Settings</button>
     <button id="testTtsBtn" style="background: #17a2b8;">🔊 Test Voice</button>
+    <button id="saveSettingsBtn">Save Settings</button>
+    <a id="donateBtn" href="https://ko-fi.com/gggentii" target="_blank">❤️ Donate</a>
   </div>
 
   <div class="chat-panel hidden" id="chatPanel">

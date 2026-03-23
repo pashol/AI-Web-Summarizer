@@ -34,7 +34,7 @@ const MODELS = {
 function createContextMenu() {
   chrome.contextMenus.create({
     id: "summarize-page-window",
-    title: "Summarize This Page with AI",
+    title: "Summerize This",
     contexts: ["all"]
   }, () => {
     // Ignore error if menu already exists
@@ -66,7 +66,7 @@ chrome.runtime.onStartup.addListener(() => {
 // Handle Context Menu Click
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId === "summarize-page-window") {
-    await handleSummarizeRequest(tab, true);
+    await handleSummarizeRequest(tab, true, info.selectionText || null);
   } else if (info.menuItemId === "factcheck-page-window") {
     await handleFactCheckRequest(tab, info.selectionText || null);
   }
@@ -115,7 +115,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 // Centralized function to handle summarization
-async function handleSummarizeRequest(tab, openInWindow) {
+async function handleSummarizeRequest(tab, openInWindow, contextMenuSelection = null) {
   const data = await chrome.storage.local.get(['apiKey', 'provider', 'model', 'language']);
 
   if (!data.apiKey) {
@@ -141,23 +141,32 @@ async function handleSummarizeRequest(tab, openInWindow) {
 
     // Store result window info for when page signals ready
     const resultTabId = newWindow.tabs[0].id;
-    
+
     // Fetch content and summary in background
     try {
       const [result] = await chrome.scripting.executeScript({
         target: { tabId: tab.id },
         func: extractPageContent
       });
-      
+
       const pageContent = result.result;
-      const summary = await getSummaryFromAI(data, pageContent, null);
-      
+
+      // Use context menu selection, then content script selection, then full page
+      const selectedText = contextMenuSelection || pageContent.selectedText || null;
+      const contentForAI = selectedText
+        ? { ...pageContent, text: selectedText }
+        : pageContent;
+      const isSelectedText = !!selectedText;
+
+      const summary = await getSummaryFromAI(data, contentForAI, null, isSelectedText);
+
       // Send result to the result window tab with retries
       await sendWithRetry(resultTabId, {
         action: 'displaySummary',
         summary: summary,
         title: pageContent.title,
-        url: pageContent.url
+        url: pageContent.url,
+        isSelectedText
       });
     } catch (error) {
       console.error('Summarization error:', error);
@@ -182,10 +191,17 @@ async function handleSummarizeRequest(tab, openInWindow) {
         target: { tabId: tab.id },
         func: extractPageContent
       });
-      
+
       const pageContent = result.result;
-      const summary = await getSummaryFromAI(data, pageContent, null);
-      return { summary, title: pageContent.title, url: pageContent.url };
+
+      const selectedText = pageContent.selectedText || null;
+      const contentForAI = selectedText
+        ? { ...pageContent, text: selectedText }
+        : pageContent;
+      const isSelectedText = !!selectedText;
+
+      const summary = await getSummaryFromAI(data, contentForAI, null, isSelectedText);
+      return { summary, title: pageContent.title, url: pageContent.url, isSelectedText };
     } catch (error) {
       console.error('Summarization error:', error);
       throw error;
@@ -298,23 +314,26 @@ async function sendPendingResult(tabId) {
 function extractPageContent() {
   const clone = document.body.cloneNode(true);
   const unwantedSelectors = [
-    'script', 'style', 'nav', 'header', 'footer', 
+    'script', 'style', 'nav', 'header', 'footer',
     'aside', 'iframe', 'noscript', '[role="navigation"]',
     '[role="banner"]', '[role="complementary"]', '.ad',
     '.advertisement', '.sidebar', '.menu'
   ];
-  
+
   unwantedSelectors.forEach(selector => {
     clone.querySelectorAll(selector).forEach(el => el.remove());
   });
 
   let text = clone.innerText || clone.textContent;
   text = text.replace(/\s+/g, ' ').trim();
-  
+
+  const selectedText = window.getSelection().toString().trim();
+
   return {
     title: document.title,
     url: window.location.href,
-    text: text.substring(0, 10000)
+    text: text.substring(0, 10000),
+    selectedText: selectedText || null
   };
 }
 
@@ -330,15 +349,19 @@ async function handleCustomPrompt(prompt) {
 }
 
 // Centralized AI Logic
-async function getSummaryFromAI(settings, pageContent, customPrompt) {
+async function getSummaryFromAI(settings, pageContent, customPrompt, isSelectedText = false) {
   let prompt;
-  
+
   if (customPrompt) {
     prompt = customPrompt;
   } else {
     const lang = settings.language || 'english';
     const instruction = lang !== 'english' ? `\n\nIMPORTANT: Summary must be in ${lang}.` : '';
-    prompt = `Concise plain text summary (no markdown) of: ${pageContent.title}\nURL: ${pageContent.url}\n\nContent:\n${pageContent.text.substring(0, 8000)}${instruction}`;
+    if (isSelectedText) {
+      prompt = `Concise plain text summary (no markdown) of the following selected text from: ${pageContent.title}\nURL: ${pageContent.url}\n\nSelected text:\n${pageContent.text.substring(0, 8000)}${instruction}`;
+    } else {
+      prompt = `Concise plain text summary (no markdown) of: ${pageContent.title}\nURL: ${pageContent.url}\n\nContent:\n${pageContent.text.substring(0, 8000)}${instruction}`;
+    }
   }
 
   const url = settings.provider === 'openai' 
