@@ -10,9 +10,27 @@ A powerful browser extension that uses advanced AI models to instantly summarize
 
 ---
 
-## 📰 Latest Release: v1.0.14
+## 📰 Latest Release: v1.0.15
 
 ### ✨ What's New
+- **New Feature**: AI-powered Fact Checker
+  - New "Fact Check This Page" button in popup UI
+  - New "Fact Check This" context menu item (right-click on any page)
+  - Uses selected text if available, falls back to full page content
+  - Critical journalist persona with structured output: Overall verdict + individual claims rated TRUE/FALSE/UNVERIFIED
+  - Opens results in dedicated result window (same as summarizer)
+
+### 🔧 Technical Improvements
+- Added `handleFactCheckRequest()` and `getFactCheckFromAI()` in background.js
+- Added `displayFactCheck()` in result.js with `mode=factcheck` URL parameter
+- Fact check button styled to match summarize button (orange, side-by-side layout)
+- Applied across both Firefox (Manifest V2) and Chrome (Manifest V3)
+
+---
+
+## 📰 Previous Release: v1.0.14
+
+### ✨ What Was New
 - **Fixed**: Chrome Web Store rejection - "No cookie auth credentials found" error
   - Clear visual indication when API key is required (yellow warning banner)
   - All features disabled until API key is configured
