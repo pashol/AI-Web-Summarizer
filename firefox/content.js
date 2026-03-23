@@ -17,10 +17,13 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 function extractMainContent() {
-  // Prioritize <article> or <main> to avoid extracting junk
+  // Prioritize semantic content elements, then common CMS content classes
   const preferred = document.querySelector('article')
     || document.querySelector('main')
-    || document.querySelector('[role="main"]');
+    || document.querySelector('[role="main"]')
+    || document.querySelector('.post-content, .entry-content, .article-content')
+    || document.querySelector('.post-body, .article-body, .story-body')
+    || document.querySelector('#content, .content');
   const clone = (preferred || document.body).cloneNode(true);
 
   // Remove non-content elements
