@@ -177,6 +177,8 @@ AI-Web-Summarizer/
 │       ├── icon48.png
 │       └── icon128.png
 │
+├── docs/
+│   └── privacy-policy.md # Privacy policy
 ├── README.md             # This file
 └── CLAUDE.md             # Comprehensive technical documentation for developers
 ```
@@ -240,6 +242,7 @@ AI-Web-Summarizer/
 - No data sent to third parties (except chosen AI provider)
 - Content extraction happens locally
 - Header sanitization prevents injection attacks
+- See [Privacy Policy](docs/privacy-policy.md) for full details
 
 ---
 
