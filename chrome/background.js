@@ -34,7 +34,7 @@ const MODELS = {
 function createContextMenu() {
   chrome.contextMenus.create({
     id: "summarize-page-window",
-    title: "Summarize this",
+    title: "Summerize This",
     contexts: ["all"]
   }, () => {
     // Ignore error if menu already exists
