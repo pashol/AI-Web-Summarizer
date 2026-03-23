@@ -74,13 +74,14 @@ You need an API key from one of the following providers:
 - **OpenRouter**: Get a key at [openrouter.ai/keys](https://openrouter.ai/keys) (access to 30+ models, including free tiers)
 
 ### Firefox Installation
-1. [Download or clone this repository](https://github.com/pashol/AI-Web-Summarizer)
-2. Open Firefox and navigate to `about:debugging#/runtime/this-firefox`
-3. Click **"Load Temporary Add-on..."**
-4. Browse into the `firefox/` folder and select `manifest.json`
-5. The AI Web Summarizer icon will appear in your Firefox toolbar
+1. Go to the [Releases page](https://github.com/pashol/AI-Web-Summarizer/releases/latest) and download the `.xpi` file attached to the latest release
+2. Open Firefox and navigate to `about:addons`
+3. Click the gear icon ⚙️ and select **"Install Add-on From File..."**
+4. Select the downloaded `.xpi` file
+5. Click **"Add"** when prompted
+6. The AI Web Summarizer icon will appear in your Firefox toolbar
 
-> **Note**: Temporary add-ons are removed when Firefox restarts. For persistent installation, the extension can be submitted to [addons.mozilla.org](https://addons.mozilla.org/).
+> **Note**: This installs the extension permanently — it persists across Firefox restarts. If you prefer to load from source, see the [Development](#-development) section.
 
 ### Chrome Installation
 1. [Download or clone this repository](https://github.com/pashol/AI-Web-Summarizer)
