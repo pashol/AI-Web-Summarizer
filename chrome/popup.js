@@ -466,25 +466,33 @@ document.getElementById('summarizeBtn').addEventListener('click', async () => {
   btn.disabled = true;
   result.className = 'summary loading';
   result.textContent = 'Generating summary...';
+  result.removeAttribute('data-selected-text');
   result.classList.remove('hidden');
 
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    
+
     const response = await chrome.runtime.sendMessage({
       action: 'summarizePage',
       tab: tab
     });
-    
+
     if (response.error) throw new Error(response.error);
-    
+
     result.className = 'summary';
     result.textContent = response.summary;
+    if (response.isSelectedText) {
+      result.dataset.selectedText = 'true';
+      const badge = document.createElement('div');
+      badge.className = 'selected-text-badge';
+      badge.textContent = 'Summarized selected text';
+      result.prepend(badge);
+    }
     speakBtn.style.display = 'block';
   } catch (error) {
     result.className = 'summary error';
     result.textContent = `Error: ${error.message}`;
-    
+
     if (error.message.includes('API key')) {
       document.getElementById('settingsPanel').classList.remove('hidden');
     }

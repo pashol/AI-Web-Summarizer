@@ -1,10 +1,12 @@
 // Content script to extract page content
 browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'getContent') {
+    const selectedText = window.getSelection().toString().trim();
     const pageContent = {
       title: document.title,
       url: window.location.href,
-      text: extractMainContent()
+      text: extractMainContent(),
+      selectedText: selectedText || null
     };
     sendResponse(pageContent);
   }
