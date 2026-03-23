@@ -2,11 +2,14 @@
 browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'getContent') {
     const selectedText = window.getSelection().toString().trim();
+    const fullText = extractMainContent();
+    const wasTruncated = fullText.length > 10000;
     const pageContent = {
       title: document.title,
       url: window.location.href,
-      text: extractMainContent(),
-      selectedText: selectedText || null
+      text: fullText.substring(0, 10000),
+      selectedText: selectedText || null,
+      wasTruncated
     };
     sendResponse(pageContent);
   }
@@ -33,6 +36,5 @@ function extractMainContent() {
   // Clean up whitespace
   text = text.replace(/\s+/g, ' ').trim();
   
-  // Limit length (to avoid token limits)
-  return text.substring(0, 10000);
+  return text;
 }
