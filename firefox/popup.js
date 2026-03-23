@@ -139,19 +139,6 @@ document.getElementById('toggleChatBtn').addEventListener('click', () => {
   document.getElementById('chatPanel').classList.toggle('hidden');
 });
 
-document.getElementById('toggleTtsBtn').addEventListener('click', () => {
-  if (!hasApiKey) {
-    // Show alert and keep settings open
-    const result = document.getElementById('result');
-    result.className = 'summary error';
-    result.textContent = 'Please configure your API key in Settings first';
-    result.classList.remove('hidden');
-    setTimeout(() => result.classList.add('hidden'), 3000);
-    return;
-  }
-  document.getElementById('ttsPanel').classList.toggle('hidden');
-});
-
 // Slider value displays
 document.getElementById('ttsRate').addEventListener('input', (e) => {
   document.getElementById('ttsRateValue').textContent = `${e.target.value}x`;
@@ -178,8 +165,7 @@ function showSetupRequired() {
   const summarizeBtn = document.getElementById('summarizeBtn');
   const sendPromptBtn = document.getElementById('sendPromptBtn');
   const toggleChatBtn = document.getElementById('toggleChatBtn');
-  const toggleTtsBtn = document.getElementById('toggleTtsBtn');
-  
+
   summarizeBtn.disabled = true;
   summarizeBtn.classList.add('disabled-feature');
   summarizeBtn.title = 'Please configure API key in Settings first';
@@ -192,14 +178,10 @@ function showSetupRequired() {
   sendPromptBtn.disabled = true;
   sendPromptBtn.classList.add('disabled-feature');
   sendPromptBtn.title = 'Please configure API key in Settings first';
-  
+
   toggleChatBtn.disabled = true;
   toggleChatBtn.classList.add('disabled-feature');
   toggleChatBtn.title = 'Please configure API key first';
-  
-  toggleTtsBtn.disabled = true;
-  toggleTtsBtn.classList.add('disabled-feature');
-  toggleTtsBtn.title = 'Please configure API key first';
   
   // Force settings panel visible with required styling
   const settingsPanel = document.getElementById('settingsPanel');
@@ -224,8 +206,7 @@ function enableFeatures() {
   const summarizeBtn = document.getElementById('summarizeBtn');
   const sendPromptBtn = document.getElementById('sendPromptBtn');
   const toggleChatBtn = document.getElementById('toggleChatBtn');
-  const toggleTtsBtn = document.getElementById('toggleTtsBtn');
-  
+
   summarizeBtn.disabled = false;
   summarizeBtn.classList.remove('disabled-feature');
   summarizeBtn.title = '';
@@ -238,14 +219,10 @@ function enableFeatures() {
   sendPromptBtn.disabled = false;
   sendPromptBtn.classList.remove('disabled-feature');
   sendPromptBtn.title = '';
-  
+
   toggleChatBtn.disabled = false;
   toggleChatBtn.classList.remove('disabled-feature');
   toggleChatBtn.title = '';
-  
-  toggleTtsBtn.disabled = false;
-  toggleTtsBtn.classList.remove('disabled-feature');
-  toggleTtsBtn.title = '';
   
   // Remove required styling
   const settingsPanel = document.getElementById('settingsPanel');
@@ -287,26 +264,26 @@ async function loadSettings() {
 
 document.getElementById('provider').addEventListener('change', () => updateModelOptions());
 
-// Save AI settings
+// Save all settings
 document.getElementById('saveSettingsBtn').addEventListener('click', async () => {
   const provider = document.getElementById('provider').value;
   const apiKey = document.getElementById('apiKey').value;
   const model = document.getElementById('model').value;
   const language = document.getElementById('language').value;
+  const ttsRate = document.getElementById('ttsRate').value;
+  const ttsPitch = document.getElementById('ttsPitch').value;
+  const ttsVoice = document.getElementById('ttsVoice').value;
 
-  await browser.storage.local.set({ provider, apiKey, model, language });
-  
+  await browser.storage.local.set({ provider, apiKey, model, language, ttsRate, ttsPitch, ttsVoice });
+
   const result = document.getElementById('result');
   result.className = 'summary';
-  result.textContent = 'Settings saved successfully!'; 
+  result.textContent = 'Settings saved successfully!';
   result.classList.remove('hidden');
-  
-  // Refresh voice dropdown for new language
-  const data = await browser.storage.local.get(['ttsVoice']);
-  populateVoiceDropdown(data.ttsVoice);
-  
+
+  populateVoiceDropdown(ttsVoice);
+
   if (apiKey) {
-    // Enable features if we just added an API key
     if (!hasApiKey) {
       enableFeatures();
     }
@@ -315,29 +292,9 @@ document.getElementById('saveSettingsBtn').addEventListener('click', async () =>
       result.classList.add('hidden');
     }, 1500);
   } else {
-    // If API key was removed, show setup required again
     showSetupRequired();
     setTimeout(() => result.classList.add('hidden'), 2000);
   }
-});
-
-// Save TTS settings
-document.getElementById('saveTtsBtn').addEventListener('click', async () => {
-  const ttsRate = document.getElementById('ttsRate').value;
-  const ttsPitch = document.getElementById('ttsPitch').value;
-  const ttsVoice = document.getElementById('ttsVoice').value;
-
-  await browser.storage.local.set({ ttsRate, ttsPitch, ttsVoice });
-  
-  const result = document.getElementById('result');
-  result.className = 'summary';
-  result.textContent = 'TTS settings saved!'; 
-  result.classList.remove('hidden');
-  
-  setTimeout(() => {
-    document.getElementById('ttsPanel').classList.add('hidden');
-    result.classList.add('hidden');
-  }, 1500);
 });
 
 // Test TTS
