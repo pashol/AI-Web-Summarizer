@@ -10,20 +10,21 @@ A powerful browser extension that uses advanced AI models to instantly summarize
 
 ---
 
-## 📰 Latest Release: v1.0.15
+## 📰 Latest Release: v1.0.18
 
 ### ✨ What's New
-- **New Feature**: AI-powered Fact Checker
-  - New "Fact Check This Page" button in popup UI
-  - New "Fact Check This" context menu item (right-click on any page)
-  - Uses selected text if available, falls back to full page content
-  - Critical journalist persona with structured output: Overall verdict + individual claims rated TRUE/FALSE/UNVERIFIED
-  - Opens results in dedicated result window (same as summarizer)
+- **Selected text summarization**: Highlight text on any page and summarize just the selection
+- **Improved content extraction**: Raised content cap to 12,000 characters with smarter CMS content detection
+- **Truncation notice**: Shows a notice when page content exceeds the extraction limit
+- **Consolidated TTS settings**: TTS controls merged into the main Settings panel for a cleaner UI
+- **Reduced token waste**: Optimized content extraction and API prompts for efficiency
+- **Privacy policy**: Added privacy policy compliant with Chrome Web Store requirements
 
 ### 🔧 Technical Improvements
-- Added `handleFactCheckRequest()` and `getFactCheckFromAI()` in background.js
-- Added `displayFactCheck()` in result.js with `mode=factcheck` URL parameter
-- Fact check button styled to match summarize button (orange, side-by-side layout)
+- Content extraction cap raised to 12,000 chars, API prompt cap to 10,000 chars
+- Added common CMS content class selectors to extraction prioritization
+- Removed separate TTS panel from result window
+- Context menu renamed to "Summarize This"
 - Applied across both Firefox (Manifest V2) and Chrome (Manifest V3)
 
 ---
@@ -114,7 +115,7 @@ Full-featured audio playback with:
 
 ```
 AI-Web-Summarizer/
-├── firefox/              # Firefox extension (Manifest V2, v1.0.15)
+├── firefox/              # Firefox extension (Manifest V2, v1.0.18)
 │   ├── manifest.json     # Extension configuration
 │   ├── popup.html        # Main popup interface
 │   ├── popup.js          # Popup logic and UI interactions
@@ -126,7 +127,7 @@ AI-Web-Summarizer/
 │       ├── icon48.png
 │       └── icon96.png
 │
-├── chrome/               # Chrome extension (Manifest V3, v1.0.15)
+├── chrome/               # Chrome extension (Manifest V3, v1.0.18)
 │   ├── manifest.json     # Chrome-specific configuration
 │   ├── popup.html        # Main popup interface
 │   ├── popup.js          # Popup logic (Chrome-adapted)
@@ -181,13 +182,13 @@ AI-Web-Summarizer/
 ## 🔧 Technical Details
 
 ### Firefox Version (Manifest V2)
-- **Version**: 1.0.15
+- **Version**: 1.0.18
 - **Min Firefox Version**: 142.0
 - **Extension ID**: `ai-summarizer-extension@yourdomain.com`
 - **Background**: Non-persistent event-driven script
 
 ### Chrome Version (Manifest V3)
-- **Version**: 1.0.15
+- **Version**: 1.0.18
 - **Background**: Service worker architecture
 - **Permissions**: activeTab, storage, contextMenus, scripting
 - **Host permissions**: `<all_urls>`
@@ -196,7 +197,7 @@ AI-Web-Summarizer/
 - **OpenAI**: Direct integration with chat completion API
 - **OpenRouter**: Unified access to 30+ AI models
 - **Token limits**: 500 tokens for summaries, 1000 for custom prompts
-- **Content limit**: 8,000-10,000 characters extracted per page
+- **Content limit**: Up to 12,000 characters extracted per page, 10,000 sent to API
 
 ### Privacy & Security
 - API keys stored locally (encrypted by browser)
@@ -282,9 +283,9 @@ This project is open source. Feel free to use, modify, and distribute as you see
 2. **Model Selection**: Start with GPT-4o Mini for cost-effective summaries, upgrade to GPT-4o or Claude for better quality
 3. **Language**: Summarizing in the original language often gives better results
 4. **TTS**: If your preferred voice isn't available, try selecting "Google" voices which are usually higher quality
-5. **Long articles**: The extension extracts up to 10,000 characters - longer articles may be truncated
+5. **Long articles**: The extension extracts up to 12,000 characters - longer articles may be truncated. A notice is shown when content is truncated.
 
 ---
 
-**Version**: Firefox 1.0.15 | Chrome 1.0.15
-**Last Updated**: March 23, 2026
+**Version**: Firefox 1.0.18 | Chrome 1.0.18
+**Last Updated**: March 24, 2026
