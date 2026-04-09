@@ -4,29 +4,23 @@ const sanitizeHeader = (str) => str ? str.replace(/[^\x00-\x7F]/g, "").trim() : 
 // Model configurations
 const MODELS = {
   openrouter: [
-    { id: 'google/gemini-3-flash-preview', name: 'Google: Gemini 3 Flash Preview' },
-    { id: 'x-ai/grok-4', name: 'Grok 4' },
-    { id: 'x-ai/grok-4-fast', name: 'Grok 4 Fast' },
-    { id: 'anthropic/claude-opus-4.5', name: 'Claude 4.5 Opus' }, 
-    { id: 'anthropic/claude-haiku-4.5', name: 'Claude 4.5 Haiku' }, 	
-    { id: 'anthropic/claude-sonnet-4.5', name: 'Claude 4.5 Sonnet' },
-    { id: 'openai/gpt-5.2-chat', name: 'GPT-5.2 Chat' },	   
-    { id: 'openai/gpt-5.2', name: 'GPT-5.2' },	
-    { id: 'openai/gpt-4o', name: 'GPT-4o' },
-    { id: 'openai/gpt-4o-mini', name: 'GPT-4o Mini' },
-    { id: 'meta-llama/llama-3.1-405b-instruct', name: 'Llama 3.1 405B' },
-    { id: 'meta-llama/llama-3.1-70b-instruct', name: 'Llama 3.1 70B' },
-    { id: 'meta-llama/llama-3.1-8b-instruct', name: 'Llama 3.1 8B' },
-    { id: 'mistralai/mistral-large-2407', name: 'Mistral Large' },
-    { id: 'perplexity/llama-3.1-sonar-large-128k-online', name: 'Perplexity Sonar' },
-    { id: 'qwen/qwen-2.5-72b-instruct', name: 'Qwen 2.5 72B' },
-    { id: 'deepseek/deepseek-chat', name: 'DeepSeek Chat' }
+    { id: 'openrouter/free', name: 'Auto (Best Free Model)' },
+    { id: 'meta-llama/llama-4-maverick:free', name: 'Llama 4 Maverick (Free)' },
+    { id: 'deepseek/deepseek-r1:free', name: 'DeepSeek R1 (Free)' },
+    { id: 'google/gemini-3-flash-preview', name: 'Gemini 3 Flash' },
+    { id: 'deepseek/deepseek-v3.2', name: 'DeepSeek V3.2' },
+    { id: 'anthropic/claude-haiku-4.5', name: 'Claude Haiku 4.5' },
+    { id: 'openai/gpt-5.4-mini', name: 'GPT-5.4 Mini' },
+    { id: 'mistralai/mistral-small-latest', name: 'Mistral Small' },
+    { id: 'anthropic/claude-sonnet-4.5', name: 'Claude Sonnet 4.5' },
+    { id: 'anthropic/claude-sonnet-4.6', name: 'Claude Sonnet 4.6' },
+    { id: 'anthropic/claude-opus-4.5', name: 'Claude Opus 4.5' },
   ],
   openai: [
-    { id: 'gpt-4o', name: 'GPT-4o' },
-    { id: 'gpt-4o-mini', name: 'GPT-4o Mini' },
-    { id: 'gpt-4-turbo', name: 'GPT-4 Turbo' },
-    { id: 'gpt-3.5-turbo', name: 'GPT-3.5 Turbo' }
+    { id: 'gpt-5.4-nano', name: 'GPT-5.4 Nano' },
+    { id: 'gpt-5.4-mini', name: 'GPT-5.4 Mini' },
+    { id: 'gpt-5.4', name: 'GPT-5.4' },
+    { id: 'gpt-4o', name: 'GPT-4o (Legacy)' },
   ]
 };
 
