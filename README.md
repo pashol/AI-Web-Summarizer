@@ -10,7 +10,21 @@ A powerful browser extension that uses advanced AI models to instantly summarize
 
 ---
 
-## 📰 Latest Release: v1.0.18
+## 📰 Latest Release: v1.0.20
+
+### ✨ What's New
+- **Cleaned up OpenRouter model list**: Removed broken/non-functional models
+- **Fixed Mistral**: Replaced invalid `mistral-small-latest` alias with `mistral-small-3.2-24b-instruct`
+
+### 🔧 Changes
+- Removed `Llama 4 Maverick (Free)` — free tier no longer working
+- Removed `DeepSeek R1 (Free)` — bugged on OpenRouter (references nonexistent model)
+- `Auto (Best Free Model)` remains as the free option via OpenRouter's free router
+- Applied across both Firefox (Manifest V2) and Chrome (Manifest V3)
+
+---
+
+## 📰 Previous Release: v1.0.18
 
 ### ✨ What's New
 - **Selected text summarization**: Highlight text on any page and summarize just the selection
@@ -73,7 +87,7 @@ You need an API key from one of the following providers:
 ### 🤖 Multi-Provider AI Support
 Seamlessly connect to:
 - **OpenAI**: GPT-4o, GPT-4o Mini, and more
-- **OpenRouter**: Access to Gemini, Claude Opus/Sonnet, Llama, and 30+ other models
+- **OpenRouter**: Access to Gemini, Claude Opus/Sonnet, DeepSeek, Mistral, and more
 
 ### 🎯 Intelligent Content Extraction
 Automatically strips away:
@@ -115,7 +129,7 @@ Full-featured audio playback with:
 
 ```
 AI-Web-Summarizer/
-├── firefox/              # Firefox extension (Manifest V2, v1.0.18)
+├── firefox/              # Firefox extension (Manifest V2, v1.0.20)
 │   ├── manifest.json     # Extension configuration
 │   ├── popup.html        # Main popup interface
 │   ├── popup.js          # Popup logic and UI interactions
@@ -127,7 +141,7 @@ AI-Web-Summarizer/
 │       ├── icon48.png
 │       └── icon96.png
 │
-├── chrome/               # Chrome extension (Manifest V3, v1.0.18)
+├── chrome/               # Chrome extension (Manifest V3, v1.0.20)
 │   ├── manifest.json     # Chrome-specific configuration
 │   ├── popup.html        # Main popup interface
 │   ├── popup.js          # Popup logic (Chrome-adapted)
@@ -182,13 +196,13 @@ AI-Web-Summarizer/
 ## 🔧 Technical Details
 
 ### Firefox Version (Manifest V2)
-- **Version**: 1.0.18
+- **Version**: 1.0.20
 - **Min Firefox Version**: 142.0
 - **Extension ID**: `ai-summarizer-extension@yourdomain.com`
 - **Background**: Non-persistent event-driven script
 
 ### Chrome Version (Manifest V3)
-- **Version**: 1.0.18
+- **Version**: 1.0.20
 - **Background**: Service worker architecture
 - **Permissions**: activeTab, storage, contextMenus, scripting
 - **Host permissions**: `<all_urls>`
@@ -287,5 +301,5 @@ This project is open source. Feel free to use, modify, and distribute as you see
 
 ---
 
-**Version**: Firefox 1.0.18 | Chrome 1.0.18
-**Last Updated**: March 24, 2026
+**Version**: Firefox 1.0.20 | Chrome 1.0.20
+**Last Updated**: April 9, 2026
