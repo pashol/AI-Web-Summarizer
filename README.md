@@ -13,13 +13,15 @@ A powerful browser extension that uses advanced AI models to instantly summarize
 ## 📰 Latest Release: v1.0.20
 
 ### ✨ What's New
-- **Cleaned up OpenRouter model list**: Removed broken/non-functional models
-- **Fixed Mistral**: Replaced invalid `mistral-small-latest` alias with `mistral-small-3.2-24b-instruct`
+- **Refreshed AI model list**: Replaced all outdated/fabricated model IDs with verified 2026 models
+- **Updated OpenAI models**: Now offers GPT-5.4 Nano, Mini, and standard — GPT-4o kept as legacy fallback
+- **Updated OpenRouter models**: Added Gemini 3 Flash, DeepSeek V3.2, Claude Haiku/Sonnet/Opus 4.5+, GPT-5.4 Mini
+- **Free tier via OpenRouter router**: `Auto (Best Free Model)` intelligently selects from available free models
+- **Fixed Mistral**: Replaced broken `mistral-small-latest` alias with `mistral-small-3.2-24b-instruct`
 
 ### 🔧 Changes
-- Removed `Llama 4 Maverick (Free)` — free tier no longer working
-- Removed `DeepSeek R1 (Free)` — bugged on OpenRouter (references nonexistent model)
-- `Auto (Best Free Model)` remains as the free option via OpenRouter's free router
+- Removed broken free models: `Llama 4 Maverick (Free)` and `DeepSeek R1 (Free)` (non-functional on OpenRouter)
+- Removed stale models: Grok 4, GPT-5.2, Llama 3.1 series, Mistral Large, Perplexity Sonar, Qwen, DeepSeek Chat
 - Applied across both Firefox (Manifest V2) and Chrome (Manifest V3)
 
 ---
