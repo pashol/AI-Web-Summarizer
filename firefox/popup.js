@@ -437,8 +437,8 @@ document.getElementById('summarizeBtn').addEventListener('click', async () => {
     if (response.isSelectedText) {
       result.dataset.selectedText = 'true';
       const badge = document.createElement('div');
-      badge.className = 'selected-text-badge';
-      badge.textContent = 'Summarized selected text';
+      badge.style.cssText = 'font-size: 11px; color: #888; margin-bottom: 8px; font-style: italic;';
+      badge.textContent = 'Note: summarized selected text only.';
       result.prepend(badge);
     }
     if (response.wasTruncated) {
