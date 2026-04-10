@@ -10,38 +10,32 @@ A powerful browser extension that uses advanced AI models to instantly summarize
 
 ---
 
-## 📰 Latest Release: v1.0.20
+## 📰 Latest Release: v1.0.21
+
+### ✨ What's New
+- **Selected-text indicator**: The popup and result window now show a subtle note when a text selection was used instead of the full page
+- **Discovery tooltip**: A tooltip on the summarize button hints that you can highlight text first for a focused summary
+- **Version number in settings**: Current version is now displayed inside the Settings panel
+
+### 🔧 Fixes
+- Suppressed misleading truncation notice when selected text was used (selected text is never truncated)
+- Fixed truncation detection logic for selected-text summarization
+- Applied across both Firefox (Manifest V2) and Chrome (Manifest V3)
+
+---
+
+## 📰 Previous Release: v1.0.20
 
 ### ✨ What's New
 - **Refreshed AI model list**: Replaced all outdated/fabricated model IDs with verified 2026 models
 - **Updated OpenAI models**: Now offers GPT-5.4 Nano, Mini, and standard — GPT-4o kept as legacy fallback
 - **Updated OpenRouter models**: Added Gemini 3 Flash, DeepSeek V3.2, Claude Haiku/Sonnet/Opus 4.5+, GPT-5.4 Mini
-- **Free tier via OpenRouter router**: `Auto (Best Free Model)` intelligently selects from available free models
+- **Free tier via OpenRouter**: `Auto (Best Free Model)` intelligently selects from available free models
 - **Fixed Mistral**: Replaced broken `mistral-small-latest` alias with `mistral-small-3.2-24b-instruct`
 
 ### 🔧 Changes
 - Removed broken free models: `Llama 4 Maverick (Free)` and `DeepSeek R1 (Free)` (non-functional on OpenRouter)
 - Removed stale models: Grok 4, GPT-5.2, Llama 3.1 series, Mistral Large, Perplexity Sonar, Qwen, DeepSeek Chat
-- Applied across both Firefox (Manifest V2) and Chrome (Manifest V3)
-
----
-
-## 📰 Previous Release: v1.0.18
-
-### ✨ What's New
-- **Selected text summarization**: Highlight text on any page and summarize just the selection
-- **Improved content extraction**: Raised content cap to 12,000 characters with smarter CMS content detection
-- **Truncation notice**: Shows a notice when page content exceeds the extraction limit
-- **Consolidated TTS settings**: TTS controls merged into the main Settings panel for a cleaner UI
-- **Reduced token waste**: Optimized content extraction and API prompts for efficiency
-- **Privacy policy**: Added privacy policy compliant with Chrome Web Store requirements
-
-### 🔧 Technical Improvements
-- Content extraction cap raised to 12,000 chars, API prompt cap to 10,000 chars
-- Added common CMS content class selectors to extraction prioritization
-- Removed separate TTS panel from result window
-- Context menu renamed to "Summarize This"
-- Applied across both Firefox (Manifest V2) and Chrome (Manifest V3)
 
 ---
 
@@ -131,7 +125,7 @@ Full-featured audio playback with:
 
 ```
 AI-Web-Summarizer/
-├── firefox/              # Firefox extension (Manifest V2, v1.0.20)
+├── firefox/              # Firefox extension (Manifest V2, v1.0.21)
 │   ├── manifest.json     # Extension configuration
 │   ├── popup.html        # Main popup interface
 │   ├── popup.js          # Popup logic and UI interactions
@@ -143,7 +137,7 @@ AI-Web-Summarizer/
 │       ├── icon48.png
 │       └── icon96.png
 │
-├── chrome/               # Chrome extension (Manifest V3, v1.0.20)
+├── chrome/               # Chrome extension (Manifest V3, v1.0.21)
 │   ├── manifest.json     # Chrome-specific configuration
 │   ├── popup.html        # Main popup interface
 │   ├── popup.js          # Popup logic (Chrome-adapted)
@@ -198,13 +192,13 @@ AI-Web-Summarizer/
 ## 🔧 Technical Details
 
 ### Firefox Version (Manifest V2)
-- **Version**: 1.0.20
+- **Version**: 1.0.21
 - **Min Firefox Version**: 142.0
 - **Extension ID**: `ai-summarizer-extension@yourdomain.com`
 - **Background**: Non-persistent event-driven script
 
 ### Chrome Version (Manifest V3)
-- **Version**: 1.0.20
+- **Version**: 1.0.21
 - **Background**: Service worker architecture
 - **Permissions**: activeTab, storage, contextMenus, scripting
 - **Host permissions**: `<all_urls>`
@@ -303,5 +297,5 @@ This project is open source. Feel free to use, modify, and distribute as you see
 
 ---
 
-**Version**: Firefox 1.0.20 | Chrome 1.0.20
-**Last Updated**: April 9, 2026
+**Version**: Firefox 1.0.21 | Chrome 1.0.21
+**Last Updated**: April 10, 2026
