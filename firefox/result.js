@@ -109,7 +109,7 @@ function displaySummary(summary, title, url, wasTruncated, isSelectedText) {
     pageUrlElement.appendChild(note);
   }
 
-  if (wasTruncated) {
+  if (wasTruncated && !isSelectedText) {
     const note = document.createElement('div');
     note.style.cssText = 'font-size: 12px; color: #888; margin-top: 4px; font-style: italic;';
     note.textContent = 'Note: page content was truncated to 12,000 characters before summarizing.';
