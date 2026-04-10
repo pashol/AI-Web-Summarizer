@@ -65,18 +65,31 @@ This extension follows the standard WebExtensions architecture with three main c
 
 ```
 AI-Web-Summarizer/
-├── manifest.json          # Extension configuration and permissions
-├── background.js          # Background script (event-driven, non-persistent)
-├── content.js             # Content script (injected into web pages)
-├── popup.html             # Main popup UI structure
-├── popup.js               # Popup UI logic and interactions
-├── result.html            # Dedicated summary window UI
-├── result.js              # Result window logic
-├── icons/
-│   ├── icon48.png        # Extension icon (48x48)
-│   └── icon96.png        # Extension icon (96x96)
-└── README.md             # User-facing documentation
+├── firefox/               # Firefox extension (uses browser.* API, Manifest V2)
+│   ├── manifest.json
+│   ├── background.js
+│   ├── content.js
+│   ├── popup.html
+│   ├── popup.js
+│   ├── result.html
+│   ├── result.js
+│   └── icons/
+├── chrome/                # Chrome extension (uses chrome.* API with callbacks, Manifest V3)
+│   ├── manifest.json
+│   ├── background.js
+│   ├── content.js
+│   ├── popup.html
+│   ├── popup.js
+│   ├── result.html
+│   ├── result.js
+│   └── icons/
+└── README.md
 ```
+
+**IMPORTANT**: The codebase has two parallel implementations — `firefox/` and `chrome/`. Any feature or bug fix must be applied to **both**. Key API differences:
+- Firefox uses `browser.*` (promise-based), Chrome uses `chrome.*` (callback-based, though modern Chrome also supports promises)
+- Firefox `content.js` truncates page text at 12,000 chars; Chrome truncates at 10,000 chars
+- Firefox Manifest V2 (`persistent: false` background); Chrome Manifest V3 (service worker)
 
 ---
 

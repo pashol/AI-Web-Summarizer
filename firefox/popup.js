@@ -211,7 +211,7 @@ function enableFeatures() {
 
   summarizeBtn.disabled = false;
   summarizeBtn.classList.remove('disabled-feature');
-  summarizeBtn.title = '';
+  summarizeBtn.title = 'Tip: Select text on the page first to summarize only that portion';
 
   const factCheckBtn = document.getElementById('factCheckBtn');
   factCheckBtn.disabled = false;
