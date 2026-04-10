@@ -444,7 +444,7 @@ document.getElementById('summarizeBtn').addEventListener('click', async () => {
       const badge = document.createElement('div');
       badge.style.cssText = 'font-size: 11px; color: #888; margin-bottom: 8px; font-style: italic;';
       badge.textContent = 'Note: summarized selected text only.';
-      result.prepend(badge);
+      result.appendChild(badge);
     }
     if (response.wasTruncated) {
       const note = document.createElement('div');
