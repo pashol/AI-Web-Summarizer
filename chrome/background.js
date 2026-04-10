@@ -353,7 +353,7 @@ function extractPageContent() {
   return {
     title: document.title,
     url: window.location.href,
-    text: text.substring(0, 10000),
+    text: text.substring(0, 12000),
     selectedText: selectedText || null
   };
 }
@@ -379,9 +379,9 @@ async function getSummaryFromAI(settings, pageContent, customPrompt, isSelectedT
     const lang = settings.language || 'english';
     const instruction = lang !== 'english' ? `\n\nIMPORTANT: Summary must be in ${lang}.` : '';
     if (isSelectedText) {
-      prompt = `Concise plain text summary (no markdown) of the following selected text from: ${pageContent.title}\nURL: ${pageContent.url}\n\nSelected text:\n${pageContent.text.substring(0, 8000)}${instruction}`;
+      prompt = `Concise plain text summary (no markdown) of the following selected text from: ${pageContent.title}\nURL: ${pageContent.url}\n\nSelected text:\n${pageContent.text.substring(0, 10000)}${instruction}`;
     } else {
-      prompt = `Concise plain text summary (no markdown) of: ${pageContent.title}\nURL: ${pageContent.url}\n\nContent:\n${pageContent.text.substring(0, 8000)}${instruction}`;
+      prompt = `Concise plain text summary (no markdown) of: ${pageContent.title}\nURL: ${pageContent.url}\n\nContent:\n${pageContent.text.substring(0, 10000)}${instruction}`;
     }
   }
 
@@ -450,7 +450,7 @@ Page title: ${pageContent.title}
 URL: ${pageContent.url}
 
 Content:
-${pageContent.text.substring(0, 8000)}`;
+${pageContent.text.substring(0, 10000)}`;
 
   const url = settings.provider === 'openai'
     ? 'https://api.openai.com/v1/chat/completions'
