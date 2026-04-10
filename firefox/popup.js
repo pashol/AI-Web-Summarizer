@@ -12,6 +12,8 @@ const langMap = {
   'dutch': 'nl', 'polish': 'pl', 'turkish': 'tr'
 };
 
+document.getElementById('ext-version').textContent = browser.runtime.getManifest().version;
+
 // Get models from background script
 browser.runtime.sendMessage({ action: 'getModels' }).then(response => {
   MODELS = response.models;
