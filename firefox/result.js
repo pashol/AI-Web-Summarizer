@@ -76,7 +76,7 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
   
   if (request.action === 'displaySummary') {
-    displaySummary(request.summary, request.title, request.url, request.wasTruncated);
+    displaySummary(request.summary, request.title, request.url, request.wasTruncated, request.isSelectedText);
     sendResponse({ success: true });
   } else if (request.action === 'displayFactCheck') {
     displayFactCheck(request.factCheck, request.title, request.url, request.isSelectedText);
@@ -88,7 +88,7 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
   return true;
 });
 
-function displaySummary(summary, title, url, wasTruncated) {
+function displaySummary(summary, title, url, wasTruncated, isSelectedText) {
   document.getElementById('loading').style.display = 'none';
   document.getElementById('pageTitle').textContent = title;
 
@@ -102,10 +102,19 @@ function displaySummary(summary, title, url, wasTruncated) {
   linkElement.rel = 'noopener noreferrer';
   pageUrlElement.appendChild(linkElement);
 
+  if (isSelectedText) {
+    const note = document.createElement('div');
+    note.style.cssText = 'font-size: 12px; color: #888; margin-top: 4px; font-style: italic;';
+    note.textContent = 'Note: summarized selected text only.';
+    pageUrlElement.appendChild(note);
+  }
+
   if (wasTruncated) {
     const note = document.createElement('div');
     note.style.cssText = 'font-size: 12px; color: #888; margin-top: 4px; font-style: italic;';
-    note.textContent = 'Note: page content was truncated to 12,000 characters before summarizing.';
+    note.textContent = isSelectedText
+      ? 'Note: selected text was truncated to 10,000 characters before summarizing.'
+      : 'Note: page content was truncated to 12,000 characters before summarizing.';
     pageUrlElement.appendChild(note);
   }
 

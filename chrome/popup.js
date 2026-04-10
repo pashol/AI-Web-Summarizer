@@ -216,7 +216,7 @@ function enableFeatures() {
 
   summarizeBtn.disabled = false;
   summarizeBtn.classList.remove('disabled-feature');
-  summarizeBtn.title = '';
+  summarizeBtn.title = 'Tip: Select text on the page first to summarize only that portion';
 
   const factCheckBtn = document.getElementById('factCheckBtn');
   factCheckBtn.disabled = false;
@@ -442,9 +442,17 @@ document.getElementById('summarizeBtn').addEventListener('click', async () => {
     if (response.isSelectedText) {
       result.dataset.selectedText = 'true';
       const badge = document.createElement('div');
-      badge.className = 'selected-text-badge';
-      badge.textContent = 'Summarized selected text';
-      result.prepend(badge);
+      badge.style.cssText = 'font-size: 11px; color: #888; margin-bottom: 8px; font-style: italic;';
+      badge.textContent = 'Note: summarized selected text only.';
+      result.appendChild(badge);
+    }
+    if (response.wasTruncated) {
+      const note = document.createElement('div');
+      note.style.cssText = 'font-size: 11px; color: #888; margin-top: 8px; font-style: italic;';
+      note.textContent = response.isSelectedText
+        ? 'Note: selected text was truncated to 10,000 characters.'
+        : 'Note: page content was truncated to 12,000 characters.';
+      result.appendChild(note);
     }
     speakBtn.style.display = 'block';
   } catch (error) {
