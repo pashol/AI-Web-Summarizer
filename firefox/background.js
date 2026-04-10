@@ -149,6 +149,7 @@ async function handleSummarizeRequest(tab, openInWindow, contextMenuSelection = 
         ? { ...pageContent, text: selectedText }
         : pageContent;
       const isSelectedText = !!selectedText;
+      const wasTruncated = isSelectedText ? selectedText.length > 10000 : pageContent.wasTruncated;
 
       const summary = await getSummaryFromAI(data, contentForAI, null, isSelectedText);
 
@@ -159,7 +160,7 @@ async function handleSummarizeRequest(tab, openInWindow, contextMenuSelection = 
         title: pageContent.title,
         url: pageContent.url,
         isSelectedText,
-        wasTruncated: pageContent.wasTruncated
+        wasTruncated
       });
     } catch (error) {
       console.error('Summarization error:', error);
@@ -187,9 +188,10 @@ async function handleSummarizeRequest(tab, openInWindow, contextMenuSelection = 
         ? { ...pageContent, text: selectedText }
         : pageContent;
       const isSelectedText = !!selectedText;
+      const wasTruncated = isSelectedText ? selectedText.length > 10000 : pageContent.wasTruncated;
 
       const summary = await getSummaryFromAI(data, contentForAI, null, isSelectedText);
-      return { summary, title: pageContent.title, url: pageContent.url, isSelectedText, wasTruncated: pageContent.wasTruncated };
+      return { summary, title: pageContent.title, url: pageContent.url, isSelectedText, wasTruncated };
     } catch (error) {
       console.error('Summarization error:', error);
       throw error;
