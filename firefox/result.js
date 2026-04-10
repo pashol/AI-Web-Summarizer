@@ -104,8 +104,8 @@ function displaySummary(summary, title, url, wasTruncated, isSelectedText) {
 
   if (isSelectedText) {
     const note = document.createElement('div');
-    note.style.cssText = 'font-size: 12px; color: #555; background: #e8f4fd; border: 1px solid #b3d7f0; border-radius: 4px; padding: 2px 6px; margin-top: 4px; display: inline-block;';
-    note.textContent = 'Summarized selected text only';
+    note.style.cssText = 'font-size: 12px; color: #888; margin-top: 4px; font-style: italic;';
+    note.textContent = 'Note: summarized selected text only.';
     pageUrlElement.appendChild(note);
   }
 
