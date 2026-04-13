@@ -354,7 +354,7 @@ function extractPageContent() {
       unique.push(line);
     }
   }
-  text = unique.join('. ');
+  text = unique.join(' ');
 
   const selectedText = window.getSelection().toString().trim();
 
