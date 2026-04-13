@@ -81,6 +81,7 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
   
   if (request.action === 'displaySummary') {
+    console.log('[AI Summarizer] pageText length:', request.pageText?.length, '| preview:', request.pageText?.substring(0, 200));
     displaySummary(request.summary, request.title, request.url, request.wasTruncated, request.isSelectedText, request.pageText);
     sendResponse({ success: true });
   } else if (request.action === 'displayFactCheck') {
