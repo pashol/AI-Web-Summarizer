@@ -29,10 +29,10 @@ function getBestArticle() {
 function extractMainContent() {
   // Prioritize semantic content elements, then common CMS content classes
   const preferred = document.querySelector('[itemprop="articleBody"]')
-    || document.querySelector('main')
-    || document.querySelector('[role="main"]')
     || document.querySelector('[role="article"]')
     || getBestArticle()
+    || document.querySelector('main')
+    || document.querySelector('[role="main"]')
     || document.querySelector('.post-content, .entry-content, .article-content')
     || document.querySelector('.post-body, .article-body, .story-body')
     || document.querySelector('#content, .content');
@@ -45,7 +45,7 @@ function extractMainContent() {
     '[role="banner"]', '[role="complementary"]', '.ad',
     '.advertisement', '.sidebar', '.menu',
     // Hidden/invisible elements (aria-hidden omitted: paywall sites use it on article containers)
-    '[hidden]', '.visually-hidden', '.sr-only',
+    '[hidden]', '.hidden', '.visually-hidden', '.sr-only',
     // Common boilerplate
     'button', 'form', '[class*="cookie"]', '[class*="subscribe"]',
     '[class*="share"]', '[class*="social"]'
