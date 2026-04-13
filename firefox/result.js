@@ -90,15 +90,18 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
   } else if (request.action === 'displayError') {
     displayError(request.error);
     sendResponse({ success: true });
+  } else if (request.action === 'appendStreamChunk') {
+    appendStreamChunk(request.chunk, request.fullText);
+    sendResponse({ success: true });
   }
   return true;
 });
 
 function displaySummary(summary, title, url, wasTruncated, isSelectedText, pageText) {
+  isStreaming = false;
   document.getElementById('loading').style.display = 'none';
   document.getElementById('pageTitle').textContent = title;
 
-  // Safely create link element to prevent XSS
   const pageUrlElement = document.getElementById('pageUrl');
   pageUrlElement.textContent = '';
   const linkElement = document.createElement('a');
@@ -124,13 +127,30 @@ function displaySummary(summary, title, url, wasTruncated, isSelectedText, pageT
     pageUrlElement.appendChild(note);
   }
 
-  document.getElementById('summary').textContent = summary;
-  document.getElementById('summary').style.display = 'block';
+  const summaryEl = document.getElementById('summary');
+  summaryEl.textContent = summary;
+  summaryEl.style.display = 'block';
   document.getElementById('actions').style.display = 'flex';
 
   storedPageContent = { title, url, text: pageText || '' };
   storedSummary = summary;
   conversationHistory = [];
+}
+
+let isStreaming = false;
+
+function appendStreamChunk(chunk, fullText) {
+  if (!isStreaming) {
+    isStreaming = true;
+    document.getElementById('loading').style.display = 'none';
+    const summaryEl = document.getElementById('summary');
+    summaryEl.style.display = 'block';
+    document.getElementById('actions').style.display = 'flex';
+  }
+  const summaryEl = document.getElementById('summary');
+  summaryEl.textContent = fullText;
+  storedSummary = fullText;
+  summaryEl.scrollTop = summaryEl.scrollHeight;
 }
 
 function displayFactCheck(factCheck, title, url, isSelectedText) {

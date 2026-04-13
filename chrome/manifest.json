@@ -25,12 +25,24 @@
       "48": "icons/icon48.png"
     }
   },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
       "js": ["content.js"]
     }
   ],
+  "commands": {
+    "summarize": {
+      "suggested_key": {
+        "default": "Ctrl+Alt+S"
+      },
+      "description": "Summarize this page"
+    }
+  },
   "background": {
     "service_worker": "background.js"
   }

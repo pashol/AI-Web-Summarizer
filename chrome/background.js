@@ -55,6 +55,16 @@ chrome.runtime.onStartup.addListener(() => {
   createContextMenu();
 });
 
+// Handle Keyboard Shortcut
+chrome.commands.onCommand.addListener(async (command) => {
+  if (command === 'summarize') {
+    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (tabs[0]) {
+      await handleSummarizeRequest(tabs[0], true);
+    }
+  }
+});
+
 // Handle Context Menu Click
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId === "summarize-page-window") {
@@ -115,7 +125,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 // Centralized function to handle summarization
 async function handleSummarizeRequest(tab, openInWindow, contextMenuSelection = null) {
-  const data = await chrome.storage.local.get(['apiKey', 'provider', 'model', 'language']);
+  const data = await chrome.storage.local.get(['apiKey', 'provider', 'model', 'language', 'streaming']);
 
   if (!data.apiKey) {
     if (openInWindow) {
@@ -158,7 +168,8 @@ async function handleSummarizeRequest(tab, openInWindow, contextMenuSelection = 
       const isSelectedText = !!selectedText;
       const wasTruncated = isSelectedText ? selectedText.length > 10000 : pageContent.wasTruncated;
 
-      const summary = await getSummaryFromAI(data, contentForAI, null, isSelectedText);
+      const useStreaming = data.streaming !== false;
+      const summary = await getSummaryFromAI(data, contentForAI, null, isSelectedText, useStreaming ? { tabId: resultTabId } : null);
 
       // Send result to the result window tab with retries
       await sendWithRetry(resultTabId, {
@@ -214,7 +225,7 @@ async function handleSummarizeRequest(tab, openInWindow, contextMenuSelection = 
 
 // Fact-check request from context menu (opens result window)
 async function handleFactCheckRequest(tab, selectedText) {
-  const data = await chrome.storage.local.get(['apiKey', 'provider', 'model', 'language']);
+  const data = await chrome.storage.local.get(['apiKey', 'provider', 'model', 'language', 'streaming']);
 
   if (!data.apiKey) {
     chrome.notifications.create({
@@ -247,7 +258,8 @@ async function handleFactCheckRequest(tab, selectedText) {
       pageContent = result.result;
     }
 
-    const factCheck = await getFactCheckFromAI(data, pageContent);
+    const useStreaming = data.streaming !== false;
+    const factCheck = await getFactCheckFromAI(data, pageContent, useStreaming ? { tabId: resultTabId } : null);
 
     await sendWithRetry(resultTabId, {
       action: 'displayFactCheck',
@@ -315,7 +327,48 @@ async function sendPendingResult(tabId) {
 
 // Function to inject into page for content extraction
 function extractPageContent() {
-  // Prioritize semantic content elements, then common CMS content classes
+  function isPdfViewer() {
+    return document.contentType === 'application/pdf'
+      || window.location.href.toLowerCase().endsWith('.pdf')
+      || window.location.href.toLowerCase().includes('.pdf?')
+      || window.location.href.toLowerCase().includes('.pdf#')
+      || !!document.querySelector('embed[type="application/pdf"]')
+      || !!document.querySelector('iframe[src*=".pdf"]')
+      || !!document.querySelector('#viewer.pdfViewer');
+  }
+
+  function extractPdfText() {
+    const viewer = document.querySelector('#viewer.pdfViewer')
+      || document.querySelector('.pdfViewer')
+      || document.querySelector('#viewer');
+
+    if (viewer) {
+      const textLayers = viewer.querySelectorAll('.textLayer');
+      if (textLayers.length > 0) {
+        const pages = [];
+        textLayers.forEach(layer => {
+          const pageText = (layer.textContent || '').replace(/\s+/g, ' ').trim();
+          if (pageText) pages.push(pageText);
+        });
+        return pages.join('\n\n');
+      }
+    }
+    return (document.body.innerText || document.body.textContent || '').replace(/\s+/g, ' ').trim();
+  }
+
+  const selectedText = window.getSelection().toString().trim();
+
+  if (isPdfViewer()) {
+    const pdfText = extractPdfText();
+    return {
+      title: document.title || 'PDF Document',
+      url: window.location.href,
+      text: pdfText.substring(0, 12000),
+      selectedText: selectedText || null,
+      wasTruncated: pdfText.length > 12000
+    };
+  }
+
   const preferred = document.querySelector('article')
     || document.querySelector('main')
     || document.querySelector('[role="main"]')
@@ -329,10 +382,8 @@ function extractPageContent() {
     'aside', 'iframe', 'noscript', '[role="navigation"]',
     '[role="banner"]', '[role="complementary"]', '.ad',
     '.advertisement', '.sidebar', '.menu',
-    // Hidden/invisible elements
     '[aria-hidden="true"]', '[hidden]', '.hidden',
     '.visually-hidden', '.sr-only',
-    // Common boilerplate
     'button', 'form', '[class*="cookie"]', '[class*="subscribe"]',
     '[class*="share"]', '[class*="social"]'
   ];
@@ -344,7 +395,6 @@ function extractPageContent() {
   let text = clone.innerText || clone.textContent;
   text = text.replace(/\s+/g, ' ').trim();
 
-  // Deduplicate repeated lines
   const lines = text.split(/[.!?\n]+/).map(s => s.trim()).filter(Boolean);
   const seen = new Set();
   const unique = [];
@@ -355,8 +405,6 @@ function extractPageContent() {
     }
   }
   text = unique.join(' ');
-
-  const selectedText = window.getSelection().toString().trim();
 
   return {
     title: document.title,
@@ -377,8 +425,7 @@ async function handleCustomPrompt(prompt) {
   return await getSummaryFromAI(data, null, prompt);
 }
 
-// Centralized AI Logic
-async function getSummaryFromAI(settings, pageContent, customPrompt, isSelectedText = false) {
+function buildApiRequest(settings, pageContent, customPrompt, isSelectedText = false) {
   let prompt;
 
   if (customPrompt) {
@@ -393,12 +440,12 @@ async function getSummaryFromAI(settings, pageContent, customPrompt, isSelectedT
     }
   }
 
-  const url = settings.provider === 'openai' 
-    ? 'https://api.openai.com/v1/chat/completions' 
+  const url = settings.provider === 'openai'
+    ? 'https://api.openai.com/v1/chat/completions'
     : 'https://openrouter.ai/api/v1/chat/completions';
 
   const defaultModel = settings.provider === 'openai' ? 'gpt-4o-mini' : 'openai/gpt-4o-mini';
-  
+
   const messages = settings.provider === 'openai'
     ? [
         { role: 'system', content: 'You are a helpful assistant.' },
@@ -406,7 +453,6 @@ async function getSummaryFromAI(settings, pageContent, customPrompt, isSelectedT
       ]
     : [{ role: 'user', content: prompt }];
 
-  // Build headers with OpenRouter-specific identity headers
   const headers = {
     'Content-Type': 'application/json',
     'Authorization': `Bearer ${sanitizeHeader(settings.apiKey)}`
@@ -417,21 +463,106 @@ async function getSummaryFromAI(settings, pageContent, customPrompt, isSelectedT
     headers['X-Title'] = 'AI Web Summarizer';
   }
 
+  const body = {
+    model: settings.model || defaultModel,
+    messages: messages,
+    max_tokens: customPrompt ? 1000 : 500,
+    stream: true
+  };
+
+  return { url, headers, body };
+}
+
+function parseSSEChunk(text) {
+  const lines = text.split('\n');
+  let content = '';
+  for (const line of lines) {
+    if (line.startsWith('data: ')) {
+      const data = line.slice(6).trim();
+      if (data === '[DONE]') return { done: true, content };
+      try {
+        const parsed = JSON.parse(data);
+        const delta = parsed.choices?.[0]?.delta?.content;
+        if (delta) content += delta;
+      } catch (e) {}
+    }
+  }
+  return { done: false, content };
+}
+
+async function streamApiRequest(url, headers, body, onChunk) {
   const response = await fetch(url, {
     method: 'POST',
     headers: headers,
-    body: JSON.stringify({
-      model: settings.model || defaultModel,
-      messages: messages,
-      max_tokens: customPrompt ? 1000 : 500
-    })
+    body: JSON.stringify(body)
+  });
+
+  if (!response.ok) {
+    const errData = await response.json().catch(() => ({}));
+    throw new Error(errData.error?.message || 'API Error');
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let fullText = '';
+  let buffer = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, { stream: true });
+    const parts = buffer.split('\n\n');
+    buffer = parts.pop() || '';
+
+    for (const part of parts) {
+      const result = parseSSEChunk(part);
+      if (result.content) {
+        fullText += result.content;
+        onChunk(result.content, fullText);
+      }
+    }
+  }
+
+  if (buffer.trim()) {
+    const result = parseSSEChunk(buffer);
+    if (result.content) {
+      fullText += result.content;
+      onChunk(result.content, fullText);
+    }
+  }
+
+  return fullText;
+}
+
+// Centralized AI Logic
+async function getSummaryFromAI(settings, pageContent, customPrompt, isSelectedText = false, streamTarget = null) {
+  const { url, headers, body } = buildApiRequest(settings, pageContent, customPrompt, isSelectedText);
+
+  if (streamTarget) {
+    return await streamApiRequest(url, headers, body, (chunk, fullText) => {
+      try {
+        chrome.tabs.sendMessage(streamTarget.tabId, {
+          action: 'appendStreamChunk',
+          chunk: chunk,
+          fullText: fullText
+        }, () => { if (chrome.runtime.lastError) {} });
+      } catch (e) {}
+    });
+  }
+
+  const nonStreamBody = { ...body, stream: false };
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: headers,
+    body: JSON.stringify(nonStreamBody)
   });
 
   const resData = await response.json();
   if (!response.ok) {
     throw new Error(resData.error?.message || 'API Error');
   }
-  
+
   return resData.choices[0].message.content;
 }
 
@@ -516,7 +647,7 @@ Answer follow-up questions based on the article above. Be concise and accurate. 
 }
 
 // Fact-check AI logic
-async function getFactCheckFromAI(settings, pageContent) {
+async function getFactCheckFromAI(settings, pageContent, streamTarget = null) {
   const lang = settings.language || 'english';
   const langInstruction = lang !== 'english' ? `\n\nIMPORTANT: Your entire response must be in ${lang}.` : '';
 
@@ -565,14 +696,29 @@ ${pageContent.text.substring(0, 10000)}`;
     headers['X-Title'] = 'AI Web Summarizer';
   }
 
+  const body = {
+    model: settings.model || defaultModel,
+    messages: messages,
+    max_tokens: 1500,
+    stream: !!streamTarget
+  };
+
+  if (streamTarget) {
+    return await streamApiRequest(url, headers, body, (chunk, fullText) => {
+      try {
+        chrome.tabs.sendMessage(streamTarget.tabId, {
+          action: 'appendStreamChunk',
+          chunk: chunk,
+          fullText: fullText
+        }, () => { if (chrome.runtime.lastError) {} });
+      } catch (e) {}
+    });
+  }
+
   const response = await fetch(url, {
     method: 'POST',
     headers: headers,
-    body: JSON.stringify({
-      model: settings.model || defaultModel,
-      messages: messages,
-      max_tokens: 1500
-    })
+    body: JSON.stringify(body)
   });
 
   const resData = await response.json();

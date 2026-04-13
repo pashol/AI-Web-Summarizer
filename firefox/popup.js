@@ -252,7 +252,7 @@ async function loadSettings() {
     document.getElementById('ttsPitch').value = data.ttsPitch;
     document.getElementById('ttsPitchValue').textContent = data.ttsPitch;
   }
-  
+
   updateModelOptions(data.model);
   populateVoiceDropdown(data.ttsVoice);
   

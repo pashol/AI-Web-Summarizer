@@ -2,19 +2,65 @@
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'getContent') {
     const selectedText = window.getSelection().toString().trim();
-    const fullText = extractMainContent();
-    const wasTruncated = fullText.length > 12000;
-    const pageContent = {
-      title: document.title,
-      url: window.location.href,
-      text: fullText.substring(0, 12000),
-      selectedText: selectedText || null,
-      wasTruncated
-    };
+
+    let pageContent;
+    if (isPdfViewer()) {
+      const pdfText = extractPdfText();
+      const wasTruncated = pdfText.length > 12000;
+      pageContent = {
+        title: document.title || 'PDF Document',
+        url: window.location.href,
+        text: pdfText.substring(0, 12000),
+        selectedText: selectedText || null,
+        wasTruncated
+      };
+    } else {
+      const fullText = extractMainContent();
+      const wasTruncated = fullText.length > 12000;
+      pageContent = {
+        title: document.title,
+        url: window.location.href,
+        text: fullText.substring(0, 12000),
+        selectedText: selectedText || null,
+        wasTruncated
+      };
+    }
+
     sendResponse(pageContent);
   }
   return true;
 });
+
+function isPdfViewer() {
+  return document.contentType === 'application/pdf'
+    || window.location.href.toLowerCase().endsWith('.pdf')
+    || window.location.href.toLowerCase().includes('.pdf?')
+    || window.location.href.toLowerCase().includes('.pdf#')
+    || !!document.querySelector('embed[type="application/pdf"]')
+    || !!document.querySelector('iframe[src*=".pdf"]')
+    || !!document.querySelector('#viewer.pdfViewer');
+}
+
+function extractPdfText() {
+  const viewer = document.querySelector('#viewer.pdfViewer')
+    || document.querySelector('.pdfViewer')
+    || document.querySelector('#viewer');
+
+  if (viewer) {
+    const textLayers = viewer.querySelectorAll('.textLayer');
+    if (textLayers.length > 0) {
+      const pages = [];
+      textLayers.forEach(layer => {
+        const pageText = (layer.textContent || '').replace(/\s+/g, ' ').trim();
+        if (pageText) pages.push(pageText);
+      });
+      return pages.join('\n\n');
+    }
+  }
+
+  const allText = (document.body.innerText || document.body.textContent || '').replace(/\s+/g, ' ').trim();
+  return allText;
+}
 
 function getBestArticle() {
   const articles = Array.from(document.querySelectorAll('article'));

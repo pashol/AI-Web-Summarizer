@@ -12,7 +12,7 @@
   ],
   "browser_specific_settings": {
     "gecko": {
-      "id": "ai-summarizer-extension@yourdomain.com",
+      "id": "ai-summarizer-extension@pashol",
       "strict_min_version": "142.0",
       "data_collection_permissions": {
         "required": ["websiteContent"]
@@ -30,12 +30,24 @@
       "48": "icons/icon48.png"
     }
   },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
       "js": ["content.js"]
     }
   ],
+  "commands": {
+    "summarize": {
+      "suggested_key": {
+        "default": "Ctrl+Alt+S"
+      },
+      "description": "Summarize this page"
+    }
+  },
   "background": {
     "scripts": ["background.js"],
     "persistent": false
