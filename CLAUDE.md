@@ -4,7 +4,7 @@
 
 **AI Web Summarizer** is a Firefox browser extension (WebExtensions API, Manifest V2) that provides AI-powered webpage summarization. The extension uses OpenAI or OpenRouter APIs to generate concise summaries of web content, with additional features including custom prompts, multilingual support, and text-to-speech functionality.
 
-**Current Version**: 1.0.18
+**Current Version**: 1.1.0
 **Extension ID**: `ai-summarizer-extension@yourdomain.com`
 **Min Firefox Version**: 142.0
 
@@ -88,7 +88,7 @@ AI-Web-Summarizer/
 
 **IMPORTANT**: The codebase has two parallel implementations — `firefox/` and `chrome/`. Any feature or bug fix must be applied to **both**. Key API differences:
 - Firefox uses `browser.*` (promise-based), Chrome uses `chrome.*` (callback-based, though modern Chrome also supports promises)
-- Firefox `content.js` truncates page text at 12,000 chars; Chrome truncates at 10,000 chars
+- Firefox `content.js` truncates page text at 12,000 chars; Chrome truncates at 12,000 chars
 - Firefox Manifest V2 (`persistent: false` background); Chrome Manifest V3 (service worker)
 
 ---
@@ -831,7 +831,7 @@ try {
 
 ## Version History
 
-- **1.0.18**: Current version (selected text summarization, improved content extraction, consolidated TTS settings, privacy policy)
+- **1.1.0**: Current version (selected text summarization, improved content extraction, consolidated TTS settings, privacy policy)
 - **1.0.15**: Add AI fact-checker feature via popup and context menu
 - **1.0.14**: Fix Chrome Web Store rejection - API key required state management
 - **1.0.13**: Fix result window stuck on "Generating..." with handshake protocol
@@ -849,4 +849,4 @@ This is a personal "vibe coded" project. See README.md for author's note about t
 
 ---
 
-*This documentation was created to help AI assistants understand and work with the AI Web Summarizer codebase. Last updated: 2026-01-23*
+*This documentation was created to help AI assistants understand and work with the AI Web Summarizer codebase. Last updated: 2026-04-13*
