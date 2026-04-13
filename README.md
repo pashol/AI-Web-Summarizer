@@ -10,17 +10,18 @@ A powerful browser extension that uses advanced AI models to instantly summarize
 
 ---
 
-## 📰 Latest Release: v1.0.21
+## 📰 Latest Release: v1.1.0
 
 ### ✨ What's New
-- **Selected-text indicator**: The popup and result window now show a subtle note when a text selection was used instead of the full page
-- **Discovery tooltip**: A tooltip on the summarize button hints that you can highlight text first for a focused summary
-- **Version number in settings**: Current version is now displayed inside the Settings panel
+- **Enhanced TTS controls**: Full voice selection with speed (0.5x-2.0x) and pitch (0.5-2.0) adjustment
+- **Smart truncation**: Intelligent handling of long content with clear indicators
+- **Selected text summarization**: Highlight any text before clicking summarize for focused summaries
+- **Context menu integration**: Right-click anywhere to summon the summarizer
 
-### 🔧 Fixes
-- Suppressed misleading truncation notice when selected text was used (selected text is never truncated)
-- Fixed truncation detection logic for selected-text summarization
-- Applied across both Firefox (Manifest V2) and Chrome (Manifest V3)
+### 🔧 Improvements
+- Refreshed AI model list with latest 2026 models
+- Free tier support via OpenRouter with auto-selection of best available model
+- Improved content extraction for cleaner summaries
 
 ---
 
@@ -81,80 +82,32 @@ You need an API key from one of the following providers:
 ## ✨ Key Features
 
 ### 🤖 Multi-Provider AI Support
-Seamlessly connect to:
-- **OpenAI**: GPT-4o, GPT-4o Mini, and more
-- **OpenRouter**: Access to Gemini, Claude Opus/Sonnet, DeepSeek, Mistral, and more
+- **OpenAI**: GPT-4o, GPT-5.4 series, and more
+- **OpenRouter**: Access to Gemini, Claude Opus/Sonnet, DeepSeek, Mistral, and 30+ models
+- **Free tier**: Auto-selects best free model via OpenRouter
 
 ### 🎯 Intelligent Content Extraction
-Automatically strips away:
-- Ads and sponsored content
-- Navigation menus and sidebars
-- Headers and footers
-- Focus only on the main article content
+- Strips ads, navigation, sidebars, headers, and footers
+- Focuses only on main article content
+- Supports text selection for targeted summarization
 
 ### 💬 Interactive Chat Interface
-Beyond summaries - ask custom questions about the current page using the "Ask AI" panel.
+- Ask custom questions about any webpage
+- Get AI responses based on page content
 
 ### 🌍 Multilingual Support
-Summarize content in 15+ languages:
-- English, Spanish, French, German, Italian
-- Portuguese, Russian, Chinese, Japanese, Korean
-- Arabic, Hindi, Dutch, Polish, Turkish
+- 15+ languages: English, Spanish, French, German, Italian, Portuguese, Russian, Chinese, Japanese, Korean, Arabic, Hindi, Dutch, Polish, Turkish
 
 ### 🔊 Text-to-Speech (TTS)
-Full-featured audio playback with:
-- **Voice selection**: Choose from available system voices
-- **Speed control**: 0.5x to 2.0x playback speed
-- **Pitch adjustment**: Customize voice pitch (0.5 to 2.0)
-- **Language-aware**: Auto-selects best voice for your chosen language
+- Voice selection from available system voices
+- Speed control (0.5x to 2.0x)
+- Pitch adjustment (0.5 to 2.0)
+- Language-aware voice auto-selection
 
 ### 🖱️ Flexible Access
-- **Popup mode**: Click extension icon for quick summaries
-- **Context menu**: Right-click anywhere → "Summarize This Page with AI"
-- **Dedicated window**: Open summaries in a separate window for better focus
-
-### 👨‍💻 Developer Friendly
-- Clean, modular JavaScript code
-- Well-documented codebase (see `CLAUDE.md`)
-- WebExtensions API (cross-browser compatible)
-- Manifest V2 (Firefox) and V3 (Chrome) support
-
----
-
-## 📁 Repository Structure
-
-```
-AI-Web-Summarizer/
-├── firefox/              # Firefox extension (Manifest V2, v1.0.21)
-│   ├── manifest.json     # Extension configuration
-│   ├── popup.html        # Main popup interface
-│   ├── popup.js          # Popup logic and UI interactions
-│   ├── background.js     # Background script (API calls, messaging)
-│   ├── content.js        # Content extraction script
-│   ├── result.html       # Dedicated summary window UI
-│   ├── result.js         # Result window logic
-│   └── icons/            # Extension icons
-│       ├── icon48.png
-│       └── icon96.png
-│
-├── chrome/               # Chrome extension (Manifest V3, v1.0.21)
-│   ├── manifest.json     # Chrome-specific configuration
-│   ├── popup.html        # Main popup interface
-│   ├── popup.js          # Popup logic (Chrome-adapted)
-│   ├── background.js     # Service worker (Manifest V3)
-│   ├── content.js        # Content extraction script
-│   ├── result.html       # Dedicated summary window UI
-│   ├── result.js         # Result window logic
-│   └── icons/            # Extension icons
-│       ├── icon16.png
-│       ├── icon48.png
-│       └── icon128.png
-│
-├── docs/
-│   └── privacy-policy.md # Privacy policy
-├── README.md             # This file
-└── CLAUDE.md             # Comprehensive technical documentation for developers
-```
+- **Popup mode**: Click extension icon for quick access
+- **Context menu**: Right-click → "Summarize This Page with AI"
+- **Dedicated window**: Open summaries in a separate window
 
 ---
 
@@ -192,13 +145,13 @@ AI-Web-Summarizer/
 ## 🔧 Technical Details
 
 ### Firefox Version (Manifest V2)
-- **Version**: 1.0.21
+- **Version**: 1.1.0
 - **Min Firefox Version**: 142.0
 - **Extension ID**: `ai-summarizer-extension@yourdomain.com`
 - **Background**: Non-persistent event-driven script
 
 ### Chrome Version (Manifest V3)
-- **Version**: 1.0.21
+- **Version**: 1.1.0
 - **Background**: Service worker architecture
 - **Permissions**: activeTab, storage, contextMenus, scripting
 - **Host permissions**: `<all_urls>`
@@ -297,5 +250,5 @@ This project is open source. Feel free to use, modify, and distribute as you see
 
 ---
 
-**Version**: Firefox 1.0.21 | Chrome 1.0.21
-**Last Updated**: April 10, 2026
+**Version**: Firefox 1.1.0 | Chrome 1.1.0
+**Last Updated**: April 13, 2026
