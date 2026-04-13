@@ -209,7 +209,9 @@ function displayFactCheck(factCheck, title, url, isSelectedText) {
   summaryEl.textContent = factCheck;
   summaryEl.style.display = 'block';
   document.getElementById('actions').style.display = 'flex';
-  document.getElementById('copyBtn').innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg> Copy Fact Check';
+  const copyBtn = document.getElementById('copyBtn');
+  copyBtn.querySelector('svg').innerHTML = '<rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>';
+  copyBtn.lastChild.textContent = ' Copy Fact Check';
 }
 
 function displayError(error) {
@@ -253,9 +255,15 @@ document.getElementById('speakBtn').addEventListener('click', () => {
 function updateSpeakButton(speaking) {
   isSpeaking = speaking;
   const btn = document.getElementById('speakBtn');
-  btn.innerHTML = speaking 
-    ? '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg> Stop Reading'
-    : '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg> Read Aloud';
+  const svg = btn.querySelector('svg');
+  const text = btn.lastChild;
+  if (speaking) {
+    svg.innerHTML = '<rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect>';
+    text.textContent = ' Stop Reading';
+  } else {
+    svg.innerHTML = '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>';
+    text.textContent = ' Read Aloud';
+  }
   btn.classList.toggle('speaking', speaking);
 }
 
