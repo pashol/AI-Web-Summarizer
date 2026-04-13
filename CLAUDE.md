@@ -220,24 +220,22 @@ function extractMainContent() {
 **UI Panels**:
 1. **Settings Panel** (`#settingsPanel`):
    - Provider selection (OpenRouter/OpenAI)
-   - API key input
    - Model selection
    - Summary language selection
+   - "Full Settings" button → opens options.html
 
-2. **TTS Settings Panel** (`#ttsPanel`):
-   - Voice selection (filtered by language)
-   - Speed slider (0.5x - 2.0x)
-   - Pitch slider (0.5 - 2.0)
-   - Test voice button
-
-3. **Chat Panel** (`#chatPanel`):
+2. **Chat Panel** (`#chatPanel`):
    - Custom prompt textarea
    - Send button for custom AI queries
 
-4. **Main Actions**:
+3. **Main Actions**:
    - Summarize This Page button
+   - Fact Check This Page button
    - Read Aloud button (TTS)
-   - Result display area
+
+4. **Warning Banner** (`#apiKeyWarning`):
+   - Shown when no API key configured for current provider
+   - Links directly to "Open Full Settings"
 
 **Key Functions**:
 
@@ -311,7 +309,7 @@ All extension settings are stored in browser local storage:
 {
   // AI Settings
   provider: 'openrouter' | 'openai',
-  apiKey: string,
+  apiKeys: { openrouter: string, openai: string },  // Per-provider API keys
   model: string,                    // Model ID
   language: string,                 // Summary language
 
@@ -319,16 +317,26 @@ All extension settings are stored in browser local storage:
   ttsRate: number,                  // 0.5 - 2.0
   ttsPitch: number,                 // 0.5 - 2.0
   ttsVoice: string                  // Voice name (optional)
+
+  // Response Settings
+  streaming: boolean                // Enable streaming responses (default: true)
 }
 ```
+
+**Migration**: On `onInstalled`, old single `apiKey` is automatically migrated to `apiKeys: { openrouter: apiKey, openai: '' }`.
+
+**Key Resolution**: Use `getApiKey(data)` helper in `background.js` which resolves the correct key for the current provider from the `apiKeys` object, with fallback to legacy `apiKey`.
 
 **Storage Operations**:
 ```javascript
 // Save settings
-await browser.storage.local.set({ apiKey, provider, model });
+await browser.storage.local.set({ provider, apiKeys, model, language });
 
 // Load settings
-const data = await browser.storage.local.get(['apiKey', 'provider']);
+const data = await browser.storage.local.get(['apiKeys', 'provider']);
+
+// Get API key for current provider
+const key = data.apiKeys[data.provider] || '';
 ```
 
 ---

@@ -45,8 +45,17 @@ function createContextMenu() {
   });
 }
 
-chrome.runtime.onInstalled.addListener(() => {
+chrome.runtime.onInstalled.addListener(async () => {
   createContextMenu();
+  chrome.storage.local.get(['apiKey', 'apiKeys'], (data) => {
+    if (data.apiKey && !data.apiKeys) {
+      chrome.storage.local.set({ apiKeys: { openrouter: data.apiKey, openai: '' } }, () => {
+        chrome.storage.local.remove('apiKey');
+      });
+    } else if (data.apiKey && data.apiKeys) {
+      chrome.storage.local.remove('apiKey');
+    }
+  });
 });
 
 // Also create on startup to handle browser restarts
@@ -124,11 +133,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   return false;
 });
 
+function getApiKey(data) {
+  if (data.apiKeys && data.apiKeys[data.provider]) return data.apiKeys[data.provider];
+  if (data.apiKey) return data.apiKey;
+  return '';
+}
+
 // Centralized function to handle summarization
 async function handleSummarizeRequest(tab, openInWindow, contextMenuSelection = null) {
-  const data = await chrome.storage.local.get(['apiKey', 'provider', 'model', 'language', 'streaming']);
+  const data = await chrome.storage.local.get(['apiKeys', 'apiKey', 'provider', 'model', 'language', 'streaming']);
 
-  if (!data.apiKey) {
+  if (!getApiKey(data)) {
     if (openInWindow) {
       chrome.notifications.create({
         type: "basic",
@@ -236,9 +251,9 @@ async function handleSummarizeRequest(tab, openInWindow, contextMenuSelection = 
 
 // Fact-check request from context menu (opens result window)
 async function handleFactCheckRequest(tab, selectedText) {
-  const data = await chrome.storage.local.get(['apiKey', 'provider', 'model', 'language', 'streaming']);
+  const data = await chrome.storage.local.get(['apiKeys', 'apiKey', 'provider', 'model', 'language', 'streaming']);
 
-  if (!data.apiKey) {
+  if (!getApiKey(data)) {
     chrome.notifications.create({
       type: "basic",
       iconUrl: "icons/icon48.png",
@@ -307,9 +322,9 @@ async function handleFactCheckRequest(tab, selectedText) {
 
 // Fact-check request from popup (returns result directly)
 async function handleFactCheckPageFromPopup(tab) {
-  const data = await chrome.storage.local.get(['apiKey', 'provider', 'model', 'language']);
+  const data = await chrome.storage.local.get(['apiKeys', 'apiKey', 'provider', 'model', 'language']);
 
-  if (!data.apiKey) {
+  if (!getApiKey(data)) {
     throw new Error('API key required. Please save your API key in Settings.');
   }
 
@@ -397,9 +412,9 @@ function extractPageContent() {
 
 // Handle custom prompts
 async function handleCustomPrompt(prompt) {
-  const data = await chrome.storage.local.get(['apiKey', 'provider', 'model']);
+  const data = await chrome.storage.local.get(['apiKeys', 'apiKey', 'provider', 'model']);
 
-  if (!data.apiKey) {
+  if (!getApiKey(data)) {
     throw new Error('API key required. Please save your API key in Settings.');
   }
 
@@ -436,7 +451,7 @@ function buildApiRequest(settings, pageContent, customPrompt, isSelectedText = f
 
   const headers = {
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${sanitizeHeader(settings.apiKey)}`
+    'Authorization': `Bearer ${sanitizeHeader(getApiKey(settings))}`
   };
 
   if (settings.provider === 'openrouter') {
@@ -549,9 +564,9 @@ async function getSummaryFromAI(settings, pageContent, customPrompt, isSelectedT
 
 // Follow-up question AI logic (multi-turn, grounded in article)
 async function getFollowUpFromAI({ question, pageContent, summary, conversationHistory }) {
-  const data = await chrome.storage.local.get(['apiKey', 'provider', 'model', 'language']);
+  const data = await chrome.storage.local.get(['apiKeys', 'apiKey', 'provider', 'model', 'language']);
 
-  if (!data.apiKey) {
+  if (!getApiKey(data)) {
     throw new Error('API key required. Please save your API key in Settings.');
   }
 
@@ -599,9 +614,9 @@ Answer follow-up questions based on the article above. Be concise and accurate. 
     }
   }
 
-  const headers = {
+const headers = {
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${sanitizeHeader(data.apiKey)}`
+    'Authorization': `Bearer ${sanitizeHeader(getApiKey(settings))}`
   };
 
   if (data.provider === 'openrouter') {
@@ -669,7 +684,7 @@ ${pageContent.text.substring(0, 10000)}`;
 
   const headers = {
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${sanitizeHeader(settings.apiKey)}`
+    'Authorization': `Bearer ${sanitizeHeader(getApiKey(settings))}`
   };
 
   if (settings.provider === 'openrouter') {

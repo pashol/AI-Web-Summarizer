@@ -1,5 +1,6 @@
 let MODELS = {};
 let availableVoices = [];
+let currentApiKeys = { openrouter: '', openai: '' };
 
 const langMap = {
   'english': 'en', 'spanish': 'es', 'french': 'fr', 'german': 'de',
@@ -103,15 +104,24 @@ function updateModelOptions(selectedModelId) {
 
 function updateProviderHint() {
   const hint = document.getElementById('providerHint');
+  const label = document.getElementById('apiKeyLabel');
   const provider = document.getElementById('provider').value;
   if (provider === 'openai') {
     hint.innerHTML = 'Get an OpenAI key at <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com/api-keys</a>';
+    label.textContent = 'OpenAI API Key:';
   } else {
     hint.innerHTML = 'Get an OpenRouter key at <a href="https://openrouter.ai/keys" target="_blank">openrouter.ai/keys</a>';
+    label.textContent = 'OpenRouter API Key:';
   }
 }
 
 document.getElementById('provider').addEventListener('change', () => {
+  const oldProvider = Object.keys(currentApiKeys).find(p => p !== document.getElementById('provider').value) || document.getElementById('provider').value;
+  const newProvider = document.getElementById('provider').value;
+
+  currentApiKeys[oldProvider] = document.getElementById('apiKey').value;
+  document.getElementById('apiKey').value = currentApiKeys[newProvider] || '';
+
   updateModelOptions();
   updateProviderHint();
 });
@@ -143,12 +153,16 @@ document.getElementById('toggleKeyBtn').addEventListener('click', () => {
 
 async function loadSettings() {
   const data = await browser.storage.local.get([
-    'provider', 'apiKey', 'model', 'language',
+    'provider', 'apiKeys', 'model', 'language',
     'ttsRate', 'ttsPitch', 'ttsVoice', 'streaming'
   ]);
 
-  if (data.provider) document.getElementById('provider').value = data.provider;
-  if (data.apiKey) document.getElementById('apiKey').value = data.apiKey;
+  const provider = data.provider || 'openrouter';
+  document.getElementById('provider').value = provider;
+
+  currentApiKeys = data.apiKeys || { openrouter: '', openai: '' };
+  document.getElementById('apiKey').value = currentApiKeys[provider] || '';
+
   if (data.language) document.getElementById('language').value = data.language;
 
   if (data.ttsRate) {
@@ -177,7 +191,9 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
   const ttsVoice = document.getElementById('ttsVoice').value;
   const streaming = document.getElementById('streaming').checked;
 
-  await browser.storage.local.set({ provider, apiKey, model, language, ttsRate, ttsPitch, ttsVoice, streaming });
+  currentApiKeys[provider] = apiKey;
+
+  await browser.storage.local.set({ provider, apiKeys: currentApiKeys, model, language, ttsRate, ttsPitch, ttsVoice, streaming });
 
   const msg = document.getElementById('statusMsg');
   msg.className = 'status-msg success';

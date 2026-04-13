@@ -25,7 +25,17 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 ## Storage
 
-Always use async `browser.storage.local.get/set` — never the sync API.
+- Always use async `browser.storage.local.get/set` — never the sync API
+- API keys are stored as `apiKeys: { openrouter: '...', openai: '...' }` — **not** a single `apiKey`
+- Use `getApiKey(data)` helper in background.js to resolve the correct key for the current provider
+- Old `apiKey` is automatically migrated to `apiKeys` on `onInstalled`
+
+## Settings Architecture
+
+**popup.html (quick settings)**: Provider, Model, Language only + "Full Settings" button
+**options.html (full settings)**: Provider, API Key (per-provider), Model, Language, TTS, Streaming, Shortcuts
+
+The API key field in options.html dynamically shows the key for the currently selected provider. Switching providers saves the current key and loads the other one.
 
 ## Testing
 
@@ -35,10 +45,12 @@ No build step. Load directly:
 
 ## Important Files
 
-- `CLAUDE.md` — Comprehensive technical docs (852 lines)
-- `background.js` — API calls, context menu, message routing
+- `CLAUDE.md` — Comprehensive technical docs
+- `background.js` — API calls, context menu, message routing, `getApiKey()` helper
 - `content.js` — Page content extraction
-- `popup.js` / `result.js` — UI logic
+- `popup.js` — Quick settings UI (provider, model, language)
+- `result.js` — Summary/fact-check result window
+- `options.js` — Full preferences (API key per provider, TTS, streaming)
 
 ## Adding a Model
 
@@ -46,4 +58,4 @@ Add to `MODELS` object in `background.js` in both `firefox/` and `chrome/`.
 
 ## Adding a Language
 
-Add option to `popup.html`, then update `langMap` in `popup.js` and `result.js` in both directories.
+Add option to `popup.html` and `options.html`, then update `langMap` in `popup.js`, `result.js`, and `options.js` in both directories.
