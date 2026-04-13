@@ -10,9 +10,8 @@ const MODELS = {
     { id: 'anthropic/claude-haiku-4.5', name: 'Claude Haiku 4.5' },
     { id: 'openai/gpt-5.4-mini', name: 'GPT-5.4 Mini' },
     { id: 'mistralai/mistral-small-3.2-24b-instruct', name: 'Mistral Small 3.2' },
-    { id: 'anthropic/claude-sonnet-4.5', name: 'Claude Sonnet 4.5' },
     { id: 'anthropic/claude-sonnet-4.6', name: 'Claude Sonnet 4.6' },
-    { id: 'anthropic/claude-opus-4.5', name: 'Claude Opus 4.5' },
+    { id: 'anthropic/claude-opus-4.6', name: 'Claude Opus 4.6' },
   ],
   openai: [
     { id: 'gpt-5.4-nano', name: 'GPT-5.4 Nano' },
@@ -170,6 +169,16 @@ async function handleSummarizeRequest(tab, openInWindow, contextMenuSelection = 
       const wasTruncated = isSelectedText ? selectedText.length > 10000 : pageContent.wasTruncated;
 
       const useStreaming = data.streaming !== false;
+      if (useStreaming) {
+        await sendWithRetry(resultTabId, {
+          action: 'streamStart',
+          title: pageContent.title,
+          url: pageContent.url,
+          wasTruncated,
+          isSelectedText,
+          mode: 'summary'
+        });
+      }
       const summary = await getSummaryFromAI(data, contentForAI, null, isSelectedText, useStreaming ? { tabId: resultTabId } : null);
 
       // Send result to the result window tab with retries
@@ -251,6 +260,16 @@ async function handleFactCheckRequest(tab, selectedText) {
     }
 
     const useStreaming = data.streaming !== false;
+    if (useStreaming) {
+      await sendWithRetry(resultTabId, {
+        action: 'streamStart',
+        title: pageContent.title,
+        url: pageContent.url,
+        wasTruncated: false,
+        isSelectedText: !!selectedText,
+        mode: 'factcheck'
+      });
+    }
     const factCheck = await getFactCheckFromAI(data, pageContent, useStreaming ? { tabId: resultTabId } : null);
 
     await sendWithRetry(resultTabId, {

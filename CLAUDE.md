@@ -154,7 +154,7 @@ AI-Web-Summarizer/
 const MODELS = {
   openrouter: [
     { id: 'google/gemini-3-flash-preview', name: 'Google: Gemini 3 Flash Preview' },
-    { id: 'anthropic/claude-opus-4.5', name: 'Claude 4.5 Opus' },
+    { id: 'anthropic/claude-opus-4.6', name: 'Claude Opus 4.6' },
     { id: 'openai/gpt-4o', name: 'GPT-4o' },
     // ... more models
   ],
