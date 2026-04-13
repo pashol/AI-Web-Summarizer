@@ -3,6 +3,11 @@ const synth = window.speechSynthesis;
 let availableVoices = [];
 let resultTabId = null;
 
+// Follow-up chat state
+let storedPageContent = null;
+let storedSummary = '';
+let conversationHistory = [];
+
 // Language code mapping
 const langMap = {
   'english': 'en', 'spanish': 'es', 'french': 'fr', 'german': 'de',
@@ -76,7 +81,7 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
   
   if (request.action === 'displaySummary') {
-    displaySummary(request.summary, request.title, request.url, request.wasTruncated, request.isSelectedText);
+    displaySummary(request.summary, request.title, request.url, request.wasTruncated, request.isSelectedText, request.pageText);
     sendResponse({ success: true });
   } else if (request.action === 'displayFactCheck') {
     displayFactCheck(request.factCheck, request.title, request.url, request.isSelectedText);
@@ -88,7 +93,7 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
   return true;
 });
 
-function displaySummary(summary, title, url, wasTruncated, isSelectedText) {
+function displaySummary(summary, title, url, wasTruncated, isSelectedText, pageText) {
   document.getElementById('loading').style.display = 'none';
   document.getElementById('pageTitle').textContent = title;
 
@@ -121,6 +126,10 @@ function displaySummary(summary, title, url, wasTruncated, isSelectedText) {
   document.getElementById('summary').textContent = summary;
   document.getElementById('summary').style.display = 'block';
   document.getElementById('actions').style.display = 'flex';
+
+  storedPageContent = { title, url, text: pageText || '' };
+  storedSummary = summary;
+  conversationHistory = [];
 }
 
 function displayFactCheck(factCheck, title, url, isSelectedText) {
@@ -218,4 +227,73 @@ function showCopiedNotification(message = '✓ Copied to clipboard!') {
   setTimeout(() => {
     notification.classList.remove('show');
   }, 2000);
+}
+
+// Toggle follow-up chat section
+document.getElementById('followUpToggleBtn').addEventListener('click', () => {
+  const section = document.getElementById('chatSection');
+  const visible = section.style.display === 'block';
+  section.style.display = visible ? 'none' : 'block';
+  if (!visible) document.getElementById('followUpInput').focus();
+});
+
+document.getElementById('askBtn').addEventListener('click', sendFollowUp);
+
+document.getElementById('followUpInput').addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') sendFollowUp();
+});
+
+async function sendFollowUp() {
+  const input = document.getElementById('followUpInput');
+  const question = input.value.trim();
+  if (!question || !storedPageContent) return;
+
+  const askBtn = document.getElementById('askBtn');
+  const thinkingEl = document.getElementById('chatThinking');
+
+  askBtn.disabled = true;
+  input.disabled = true;
+  appendChatMessage('user', question);
+  input.value = '';
+  thinkingEl.style.display = 'block';
+
+  try {
+    const response = await browser.runtime.sendMessage({
+      action: 'sendFollowUpQuestion',
+      question,
+      pageContent: storedPageContent,
+      summary: storedSummary,
+      conversationHistory
+    });
+
+    if (response.error) throw new Error(response.error);
+
+    appendChatMessage('assistant', response.answer);
+    conversationHistory.push({ role: 'user', content: question });
+    conversationHistory.push({ role: 'assistant', content: response.answer });
+    if (conversationHistory.length > 12) conversationHistory = conversationHistory.slice(-12);
+
+  } catch (err) {
+    appendChatMessage('assistant', `Error: ${err.message}`);
+  } finally {
+    askBtn.disabled = false;
+    input.disabled = false;
+    thinkingEl.style.display = 'none';
+    input.focus();
+  }
+}
+
+function appendChatMessage(role, content) {
+  const historyEl = document.getElementById('chatHistory');
+  const wrapper = document.createElement('div');
+  wrapper.className = `chat-message ${role}`;
+  const label = document.createElement('div');
+  label.className = 'msg-label';
+  label.textContent = role === 'user' ? 'You' : 'AI';
+  wrapper.appendChild(label);
+  const text = document.createElement('div');
+  text.textContent = content;
+  wrapper.appendChild(text);
+  historyEl.appendChild(wrapper);
+  historyEl.scrollTop = historyEl.scrollHeight;
 }

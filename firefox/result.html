@@ -109,6 +109,12 @@
     #copyBtn:hover {
       background: #5a6268;
     }
+    #followUpToggleBtn {
+      background: #6f42c1;
+    }
+    #followUpToggleBtn:hover {
+      background: #5a32a3;
+    }
     .copied-notification {
       display: none;
       position: fixed;
@@ -135,6 +141,96 @@
         opacity: 1;
       }
     }
+    /* Follow-up chat section */
+    .chat-section {
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 2px solid #e0e0e0;
+      display: none;
+    }
+    .chat-section h2 {
+      font-size: 16px;
+      color: #555;
+      margin: 0 0 14px 0;
+      font-weight: 600;
+    }
+    .chat-history {
+      max-height: 400px;
+      overflow-y: auto;
+      margin-bottom: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .chat-message {
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+    .chat-message.user {
+      background: #e8f0fe;
+      color: #1a1a1a;
+      align-self: flex-end;
+      max-width: 85%;
+      border-bottom-right-radius: 2px;
+    }
+    .chat-message.assistant {
+      background: #f1f3f4;
+      color: #333;
+      align-self: flex-start;
+      max-width: 85%;
+      border-bottom-left-radius: 2px;
+    }
+    .chat-message .msg-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+      opacity: 0.55;
+    }
+    .chat-input-area {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .chat-input-area textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+      resize: vertical;
+      min-height: 66px;
+      box-sizing: border-box;
+      color: #333;
+    }
+    .chat-input-area textarea:focus {
+      outline: none;
+      border-color: #0066cc;
+      box-shadow: 0 0 0 2px rgba(0,102,204,0.15);
+    }
+    #askBtn {
+      align-self: flex-end;
+      padding: 9px 22px;
+      font-size: 14px;
+      min-width: 70px;
+    }
+    #askBtn:disabled {
+      background: #aaa;
+      cursor: not-allowed;
+    }
+    .chat-thinking {
+      font-size: 13px;
+      color: #888;
+      font-style: italic;
+      display: none;
+      padding: 2px 0 6px;
+    }
   </style>
 </head>
 <body>
@@ -155,6 +251,17 @@
     <div class="actions" id="actions" style="display: none;">
       <button id="speakBtn">🔊 Read Aloud</button>
       <button id="copyBtn">📋 Copy Summary</button>
+      <button id="followUpToggleBtn">💬 Follow Up</button>
+    </div>
+
+    <div class="chat-section" id="chatSection">
+      <h2>Ask a follow-up question</h2>
+      <div class="chat-history" id="chatHistory"></div>
+      <div class="chat-thinking" id="chatThinking">Thinking...</div>
+      <div class="chat-input-area">
+        <textarea id="followUpInput" placeholder="Ask anything about this article... (Ctrl+Enter to send)" rows="3"></textarea>
+        <button id="askBtn">Ask</button>
+      </div>
     </div>
   </div>
 
