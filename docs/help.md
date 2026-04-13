@@ -194,12 +194,10 @@ Watch summaries generate in real-time:
 
 ## Keyboard Shortcuts
 
-| Browser | Shortcut | Action |
-|---------|----------|--------|
-| Firefox | `Ctrl+Alt+S` | Summarize page |
-| Firefox | `Ctrl+Alt+F` | Fact-check page |
-| Chrome | `Ctrl+Alt+S` | Summarize page |
-| Chrome | `Ctrl+Alt+F` | Fact-check page |
+| Browser | Summarize | Fact-Check |
+|---------|-----------|------------|
+| Firefox | `Ctrl+Alt+S` | `Ctrl+Alt+F` |
+| Chrome | `Ctrl+Shift+S` | `Ctrl+Shift+F` |
 
 ### Customizing Shortcuts
 

@@ -112,7 +112,7 @@ You need an API key from one of the following providers:
 |--------|--------------|
 | **Popup** | Click extension icon → "Summarize This Page" |
 | **Context Menu** | Right-click anywhere → "Summarize This Page with AI" |
-| **Keyboard** | `Ctrl+Alt+S` to summarize, `Ctrl+Alt+F` to fact-check |
+| **Keyboard** | Firefox: `Ctrl+Alt+S`/`Ctrl+Alt+F`, Chrome: `Ctrl+Shift+S`/`Ctrl+Shift+F` |
 | **Selection** | Highlight text → click extension → "Summarize Selected Text" |
 
 See [docs/help.md](docs/help.md) for detailed usage guide, TTS controls, and feature explanations.
