@@ -90,7 +90,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     resultTabId = sender.tab.id;
   }
   
-  if (request.action === 'displaySummary') {
+  if (request.action === 'streamStart') {
+    setPageInfo(request.title, request.url, request.wasTruncated, request.isSelectedText, request.mode || 'summary');
+    document.getElementById('loading').style.display = 'none';
+    sendResponse({ success: true });
+  } else if (request.action === 'displaySummary') {
     displaySummary(request.summary, request.title, request.url, request.wasTruncated, request.isSelectedText, request.pageText);
     sendResponse({ success: true });
   } else if (request.action === 'displayFactCheck') {
@@ -109,31 +113,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 function displaySummary(summary, title, url, wasTruncated, isSelectedText, pageText) {
   isStreaming = false;
   document.getElementById('loading').style.display = 'none';
-  document.getElementById('pageTitle').textContent = title;
-
-  const pageUrlElement = document.getElementById('pageUrl');
-  pageUrlElement.textContent = '';
-  const linkElement = document.createElement('a');
-  linkElement.href = url;
-  linkElement.textContent = url;
-  linkElement.target = '_blank';
-  linkElement.rel = 'noopener noreferrer';
-  pageUrlElement.appendChild(linkElement);
-
-  if (isSelectedText) {
-    const note = document.createElement('div');
-    note.style.cssText = 'font-size: 12px; color: #888; margin-top: 4px; font-style: italic;';
-    note.textContent = 'Note: summarized selected text only.';
-    pageUrlElement.appendChild(note);
-  }
-
-  if (wasTruncated) {
-    const note = document.createElement('div');
-    note.style.cssText = 'font-size: 12px; color: #888; margin-top: 4px; font-style: italic;';
-    note.textContent = isSelectedText
-      ? 'Note: selected text was truncated to 10,000 characters before summarizing.'
-      : 'Note: page content was truncated to 12,000 characters before summarizing.';
-    pageUrlElement.appendChild(note);
+  if (!pageInfoSet) {
+    setPageInfo(title, url, wasTruncated, isSelectedText, 'summary');
   }
 
   const summaryEl = document.getElementById('summary');
@@ -147,6 +128,48 @@ function displaySummary(summary, title, url, wasTruncated, isSelectedText, pageT
 }
 
 let isStreaming = false;
+let pageInfoSet = false;
+
+function truncateUrl(url, maxLength = 80) {
+  if (url.length <= maxLength) return url;
+  const start = url.substring(0, Math.floor(maxLength * 0.55));
+  const end = url.substring(url.length - Math.floor(maxLength * 0.35));
+  return start + '...' + end;
+}
+
+function setPageInfo(title, url, wasTruncated, isSelectedText, mode = 'summary') {
+  document.getElementById('pageTitle').textContent = title;
+
+  const pageUrlElement = document.getElementById('pageUrl');
+  pageUrlElement.textContent = '';
+  const linkElement = document.createElement('a');
+  linkElement.href = url;
+  linkElement.textContent = truncateUrl(url);
+  linkElement.title = url;
+  linkElement.target = '_blank';
+  linkElement.rel = 'noopener noreferrer';
+  pageUrlElement.appendChild(linkElement);
+
+  if (isSelectedText) {
+    const note = document.createElement('div');
+    note.style.cssText = 'font-size: 12px; color: #888; margin-top: 4px; font-style: italic;';
+    note.textContent = mode === 'factcheck'
+      ? '(Fact-checking selected text only)'
+      : 'Note: summarized selected text only.';
+    pageUrlElement.appendChild(note);
+  }
+
+  if (wasTruncated) {
+    const note = document.createElement('div');
+    note.style.cssText = 'font-size: 12px; color: #888; margin-top: 4px; font-style: italic;';
+    note.textContent = isSelectedText
+      ? 'Note: selected text was truncated to 10,000 characters before summarizing.'
+      : 'Note: page content was truncated to 12,000 characters before summarizing.';
+    pageUrlElement.appendChild(note);
+  }
+
+  pageInfoSet = true;
+}
 
 function appendStreamChunk(chunk, fullText) {
   if (!isStreaming) {
@@ -165,22 +188,8 @@ function appendStreamChunk(chunk, fullText) {
 function displayFactCheck(factCheck, title, url, isSelectedText) {
   document.getElementById('loading').style.display = 'none';
   document.title = 'AI Fact Check Result';
-  document.getElementById('pageTitle').textContent = title;
-
-  const pageUrlElement = document.getElementById('pageUrl');
-  pageUrlElement.textContent = '';
-  const linkElement = document.createElement('a');
-  linkElement.href = url;
-  linkElement.textContent = url;
-  linkElement.target = '_blank';
-  linkElement.rel = 'noopener noreferrer';
-  pageUrlElement.appendChild(linkElement);
-
-  if (isSelectedText) {
-    const note = document.createElement('div');
-    note.style.cssText = 'font-size: 12px; color: #888; margin-top: 4px; font-style: italic;';
-    note.textContent = '(Fact-checking selected text only)';
-    pageUrlElement.appendChild(note);
+  if (!pageInfoSet) {
+    setPageInfo(title, url, false, isSelectedText, 'factcheck');
   }
 
   const summaryEl = document.getElementById('summary');

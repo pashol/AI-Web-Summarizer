@@ -56,11 +56,13 @@ chrome.runtime.onStartup.addListener(() => {
 
 // Handle Keyboard Shortcut
 chrome.commands.onCommand.addListener(async (command) => {
+  const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (!tabs[0]) return;
+
   if (command === 'summarize') {
-    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (tabs[0]) {
-      await handleSummarizeRequest(tabs[0], true);
-    }
+    await handleSummarizeRequest(tabs[0], true);
+  } else if (command === 'fact-check') {
+    await handleFactCheckRequest(tabs[0], null);
   }
 });
 
