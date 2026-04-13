@@ -126,7 +126,7 @@ See [docs/help.md](docs/help.md) for detailed usage guide, TTS controls, and fea
 | Version | 2.0.0 | 2.0.0 |
 | Manifest | V2 | V3 |
 | Background | Event-driven script | Service worker |
-| Content limit | 12,000 chars extracted, 10,000 sent to API |
+| Content limit | 12,000 chars extracted, 10,000 sent to API | 12,000 chars extracted, 10,000 sent to API |
 
 **API**: OpenAI (GPT-5.4 series) and OpenRouter (Gemini 3 Flash, DeepSeek V3.2, Claude Haiku/Sonnet/Opus, Mistral, free tier)
 
