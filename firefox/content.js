@@ -16,11 +16,23 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
   return true;
 });
 
+function getBestArticle() {
+  const articles = Array.from(document.querySelectorAll('article'));
+  if (articles.length === 0) return null;
+  const best = articles.reduce((a, b) =>
+    b.textContent.length > a.textContent.length ? b : a
+  );
+  // Ignore teaser-sized article elements; fall through to other selectors
+  return best.textContent.length > 300 ? best : null;
+}
+
 function extractMainContent() {
   // Prioritize semantic content elements, then common CMS content classes
-  const preferred = document.querySelector('article')
+  const preferred = document.querySelector('[itemprop="articleBody"]')
     || document.querySelector('main')
     || document.querySelector('[role="main"]')
+    || document.querySelector('[role="article"]')
+    || getBestArticle()
     || document.querySelector('.post-content, .entry-content, .article-content')
     || document.querySelector('.post-body, .article-body, .story-body')
     || document.querySelector('#content, .content');
