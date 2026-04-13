@@ -52,45 +52,33 @@ A powerful browser extension that uses advanced AI models to instantly summarize
 ### Prerequisites
 You need an API key from one of the following providers:
 - **OpenAI**: Get a key at [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
-- **OpenRouter**: Get a key at [openrouter.ai/keys](https://openrouter.ai/keys) (access to 30+ models, including free tiers)
+- **OpenRouter**: Get a key at [openrouter.ai/keys](https://openrouter.ai/keys) (includes free tier)
 
 ### Firefox Installation
-1. Go to the [Releases page](https://github.com/pashol/AI-Web-Summarizer/releases/latest) and download the `.xpi` file attached to the latest release
-2. Open Firefox and navigate to `about:addons`
-3. Click the gear icon ⚙️ and select **"Install Add-on From File..."**
-4. Select the downloaded `.xpi` file
-5. Click **"Add"** when prompted
-6. The AI Web Summarizer icon will appear in your Firefox toolbar
-
-> **Note**: This installs the extension permanently — it persists across Firefox restarts. If you prefer to load from source, see the [Development](#-development) section.
+1. Download the `.xpi` from the [Releases page](https://github.com/pashol/AI-Web-Summarizer/releases/latest)
+2. Open `about:addons` → gear icon → **"Install Add-on From File..."**
+3. Select the `.xpi` file and click **"Add"**
 
 ### Chrome Installation
-1. [Download or clone this repository](https://github.com/pashol/AI-Web-Summarizer)
-2. Open Chrome and navigate to `chrome://extensions/`
-3. Enable **"Developer mode"** using the toggle in the top-right corner
-4. Click **"Load unpacked"**
-5. Select the `chrome/` folder (not a file inside it — the whole folder)
-6. The AI Web Summarizer icon will appear in your Chrome toolbar
-
-> **Note**: Unpacked extensions persist across restarts. Chrome may show a warning about developer mode extensions — this is normal.
+1. Download or clone this repository
+2. Open `chrome://extensions/` → enable **Developer mode**
+3. Click **"Load unpacked"** → select the `chrome/` folder
 
 ### First-Time Setup
-1. Click the extension icon in your toolbar
-2. The **Settings panel** will open automatically (required on first use)
-3. Paste your **API key** into the API Key field
-4. Select your **provider** (OpenAI or OpenRouter)
-5. Choose a **model** from the dropdown (GPT-4o Mini is a good starting point)
-6. Select your preferred **summary language**
-7. Click **Save Settings**
-8. You're ready — navigate to any webpage and click **"Summarize This Page"**
+1. Click the extension icon → Settings opens automatically
+2. Paste your **API key** and select your **provider**
+3. Choose a **model** and **language**
+4. Click **Save Settings** → you're ready!
+
+> **Full installation guide, troubleshooting, and detailed feature documentation available in [docs/help.md](docs/help.md).**
 
 ---
 
 ## ✨ Key Features
 
 ### 🤖 Multi-Provider AI Support
-- **OpenAI**: GPT-4o, GPT-5.4 series, and more
-- **OpenRouter**: Access to Gemini, Claude Opus/Sonnet, DeepSeek, Mistral, and 30+ models
+- **OpenAI**: GPT-5.4 Nano/Mini, GPT-5.4, GPT-4o (Legacy)
+- **OpenRouter**: Gemini 3 Flash, DeepSeek V3.2, Claude Haiku/Sonnet/Opus, Mistral Small 3.2
 - **Free tier**: Auto-selects best free model via OpenRouter
 
 ### 🎯 Intelligent Content Extraction
@@ -120,105 +108,39 @@ You need an API key from one of the following providers:
 
 ## 🎮 How to Use
 
-### Basic Summarization
-1. Navigate to any webpage you want to summarize
-2. Click the **AI Web Summarizer** extension icon
-3. Click **"Summarize This Page"**
-4. Wait a few seconds for the AI to process
-5. Read your summary or click **"Read Aloud"** for TTS
+| Method | Instructions |
+|--------|--------------|
+| **Popup** | Click extension icon → "Summarize This Page" |
+| **Context Menu** | Right-click anywhere → "Summarize This Page with AI" |
+| **Keyboard** | `Ctrl+Alt+S` to summarize, `Ctrl+Alt+F` to fact-check |
+| **Selection** | Highlight text → click extension → "Summarize Selected Text" |
 
-### Custom Questions
-1. Open the extension popup
-2. Scroll to the **"Ask AI about this page"** section
-3. Type your question (e.g., "What are the main arguments?")
-4. Click **"Send"**
-5. Get a custom AI response based on page content
-
-### Context Menu
-1. Right-click anywhere on a webpage
-2. Select **"Summarize This Page with AI"**
-3. A dedicated window opens with your summary
-4. Copy to clipboard or read aloud directly
-
-### Settings
-- **Provider**: Switch between OpenAI and OpenRouter
-- **API Key**: Securely stored in browser local storage
-- **Model**: Choose from available models for your provider
-- **Language**: Select summary language (affects TTS too)
-- **TTS Settings**: Customize voice, speed, and pitch
+See [docs/help.md](docs/help.md) for detailed usage guide, TTS controls, and feature explanations.
 
 ---
 
 ## 🔧 Technical Details
 
-### Firefox Version (Manifest V2)
-- **Version**: 2.0.0
-- **Min Firefox Version**: 142.0
-- **Extension ID**: `ai-summarizer-extension@yourdomain.com`
-- **Background**: Non-persistent event-driven script
+| | Firefox | Chrome |
+|---|---|---|
+| Version | 2.0.0 | 2.0.0 |
+| Manifest | V2 | V3 |
+| Background | Event-driven script | Service worker |
+| Content limit | 12,000 chars | 10,000 chars |
 
-### Chrome Version (Manifest V3)
-- **Version**: 2.0.0
-- **Background**: Service worker architecture
-- **Permissions**: activeTab, storage, contextMenus, scripting
-- **Host permissions**: `<all_urls>`
+**API**: OpenAI (GPT-5.4 series) and OpenRouter (Gemini 3 Flash, DeepSeek V3.2, Claude Haiku/Sonnet/Opus, Mistral, free tier)
 
-### API Integration
-- **OpenAI**: Direct integration with chat completion API
-- **OpenRouter**: Unified access to 30+ AI models
-- **Token limits**: 500 tokens for summaries, 1000 for custom prompts
-- **Content limit**: Up to 12,000 characters extracted per page, 10,000 sent to API
-
-### Privacy & Security
-- API keys stored locally (encrypted by browser)
-- No telemetry or tracking
-- No data sent to third parties (except chosen AI provider)
-- Content extraction happens locally
-- Header sanitization prevents injection attacks
-- See [Privacy Policy](docs/privacy-policy.md) for full details
+**Privacy**: Keys stored locally, no telemetry, no third-party data sharing. See [Privacy Policy](docs/privacy-policy.md) and [docs/help.md](docs/help.md#privacy--security).
 
 ---
 
 ## 🛠️ Development
 
-### Testing Locally
-**Firefox:**
-```bash
-# Navigate to the project directory
-cd AI-Web-Summarizer/firefox
+**Testing locally:**
+- **Firefox**: `about:debugging#/runtime/this-firefox` → Load Temporary Add-on → select `manifest.json`
+- **Chrome**: `chrome://extensions/` → Load unpacked → select `chrome/` folder
 
-# Load in Firefox:
-# 1. Open about:debugging#/runtime/this-firefox
-# 2. Click "Load Temporary Add-on"
-# 3. Select manifest.json
-```
-
-**Chrome:**
-```bash
-# Navigate to the project directory
-cd AI-Web-Summarizer/chrome
-
-# Load in Chrome:
-# 1. Open chrome://extensions/
-# 2. Enable "Developer mode"
-# 3. Click "Load unpacked"
-# 4. Select the chrome/ folder
-```
-
-### Debugging
-- **Background script**: Use browser's extension debugging tools
-- **Popup**: Right-click popup → Inspect Element
-- **Content script**: Use webpage's DevTools console
-- **Console logs**: Check for errors in appropriate context
-
-### Documentation
-See `CLAUDE.md` for comprehensive technical documentation including:
-- Architecture overview
-- Component details
-- Message passing patterns
-- API integration
-- Development workflows
-- Coding conventions
+**Documentation:** See `CLAUDE.md` for technical documentation.
 
 ---
 
@@ -249,13 +171,14 @@ This project is open source. Feel free to use, modify, and distribute as you see
 
 ## 💡 Tips
 
-1. **API Keys**: Get your OpenAI key from [platform.openai.com](https://platform.openai.com/) or OpenRouter key from [openrouter.ai](https://openrouter.ai/)
-2. **Model Selection**: Start with GPT-4o Mini for cost-effective summaries, upgrade to GPT-4o or Claude for better quality
-3. **Language**: Summarizing in the original language often gives better results
-4. **TTS**: If your preferred voice isn't available, try selecting "Google" voices which are usually higher quality
-5. **Long articles**: The extension extracts up to 12,000 characters - longer articles may be truncated. A notice is shown when content is truncated.
+- **API Keys**: OpenAI at [platform.openai.com](https://platform.openai.com/) or OpenRouter at [openrouter.ai](https://openrouter.ai/)
+- **Model Selection**: GPT-5.4 Mini for cost-effective, GPT-5.4/Claude for quality
+- **Language**: Summarize in original language for better accuracy
+- **Long articles**: Content truncated at 12,000 chars with notice shown
+
+**For detailed documentation, troubleshooting, and FAQ, see [docs/help.md](docs/help.md).**
 
 ---
 
 **Version**: Firefox 2.0.0 | Chrome 2.0.0
-**Last Updated**: April 13, 2026
+**Last Updated**: April 14, 2026
