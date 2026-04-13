@@ -44,13 +44,13 @@
   "commands": {
     "summarize": {
       "suggested_key": {
-        "default": "Ctrl+Alt+S"
+        "default": "Ctrl+Shift+S"
       },
       "description": "Summarize this page"
     },
     "fact-check": {
       "suggested_key": {
-        "default": "Ctrl+Alt+F"
+        "default": "Ctrl+Shift+F"
       },
       "description": "Fact check this page"
     }
