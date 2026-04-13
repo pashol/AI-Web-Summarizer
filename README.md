@@ -10,7 +10,29 @@ A powerful browser extension that uses advanced AI models to instantly summarize
 
 ---
 
-## 📰 Latest Release: v1.1.0
+## 📰 Latest Release: v2.0.0
+
+### ✨ What's New
+- **Per-provider API keys**: Separate API keys for OpenAI and OpenRouter, seamlessly switching between providers
+- **Popup quick settings**: Provider, model, and language can now be changed directly in the popup without opening full settings
+- **Follow-up chat**: Ask follow-up questions about the summarized content in the result window
+- **Fact-check mode**: Verify claims on any webpage with AI-powered fact-checking
+- **Keyboard shortcuts**: Ctrl+Alt+S to summarize, Ctrl+Alt+F to fact-check
+- **Streaming responses**: Watch summaries generate in real-time
+
+### 🔧 Improvements
+- **UI polish**: Replaced all emoji icons with proper SVG icons for consistent rendering
+- **Theme consistency**: Unified color scheme with proper light/dark mode support across all components
+- **Button styling**: Improved hover states, focus indicators, and visual hierarchy
+- **Better settings UX**: Full settings page accessible via gear icon in popup
+
+### 🐛 Bug Fixes
+- Fixed streaming response handling
+- Improved result window layout and scrolling
+
+---
+
+## 📰 Previous Release: v1.1.0
 
 ### ✨ What's New
 - **Enhanced TTS controls**: Full voice selection with speed (0.5x-2.0x) and pitch (0.5-2.0) adjustment
@@ -22,21 +44,6 @@ A powerful browser extension that uses advanced AI models to instantly summarize
 - Refreshed AI model list with latest 2026 models
 - Free tier support via OpenRouter with auto-selection of best available model
 - Improved content extraction for cleaner summaries
-
----
-
-## 📰 Previous Release: v1.0.20
-
-### ✨ What's New
-- **Refreshed AI model list**: Replaced all outdated/fabricated model IDs with verified 2026 models
-- **Updated OpenAI models**: Now offers GPT-5.4 Nano, Mini, and standard — GPT-4o kept as legacy fallback
-- **Updated OpenRouter models**: Added Gemini 3 Flash, DeepSeek V3.2, Claude Haiku/Sonnet/Opus 4.5+, GPT-5.4 Mini
-- **Free tier via OpenRouter**: `Auto (Best Free Model)` intelligently selects from available free models
-- **Fixed Mistral**: Replaced broken `mistral-small-latest` alias with `mistral-small-3.2-24b-instruct`
-
-### 🔧 Changes
-- Removed broken free models: `Llama 4 Maverick (Free)` and `DeepSeek R1 (Free)` (non-functional on OpenRouter)
-- Removed stale models: Grok 4, GPT-5.2, Llama 3.1 series, Mistral Large, Perplexity Sonar, Qwen, DeepSeek Chat
 
 ---
 
@@ -145,13 +152,13 @@ You need an API key from one of the following providers:
 ## 🔧 Technical Details
 
 ### Firefox Version (Manifest V2)
-- **Version**: 1.1.0
+- **Version**: 2.0.0
 - **Min Firefox Version**: 142.0
 - **Extension ID**: `ai-summarizer-extension@yourdomain.com`
 - **Background**: Non-persistent event-driven script
 
 ### Chrome Version (Manifest V3)
-- **Version**: 1.1.0
+- **Version**: 2.0.0
 - **Background**: Service worker architecture
 - **Permissions**: activeTab, storage, contextMenus, scripting
 - **Host permissions**: `<all_urls>`
@@ -250,5 +257,5 @@ This project is open source. Feel free to use, modify, and distribute as you see
 
 ---
 
-**Version**: Firefox 1.1.0 | Chrome 1.1.0
+**Version**: Firefox 2.0.0 | Chrome 2.0.0
 **Last Updated**: April 13, 2026
