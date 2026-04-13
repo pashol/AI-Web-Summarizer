@@ -100,6 +100,15 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true;
   }
 
+  if (request.action === 'sendFollowUpQuestion') {
+    getFollowUpFromAI(request).then(result => {
+      sendResponse({ answer: result });
+    }).catch(error => {
+      sendResponse({ error: error.message });
+    });
+    return true;
+  }
+
   if (request.action === 'resultReady') {
     // Result page is ready to receive messages
     if (pendingResultWindow) {
@@ -160,7 +169,8 @@ async function handleSummarizeRequest(tab, openInWindow, contextMenuSelection = 
         title: pageContent.title,
         url: pageContent.url,
         isSelectedText,
-        wasTruncated
+        wasTruncated,
+        pageText: pageContent.text
       });
     } catch (error) {
       console.error('Summarization error:', error);
@@ -360,6 +370,86 @@ async function getSummaryFromAI(settings, pageContent, customPrompt, isSelectedT
     throw new Error(resData.error?.message || 'API Error');
   }
   
+  return resData.choices[0].message.content;
+}
+
+// Follow-up question AI logic (multi-turn, grounded in article)
+async function getFollowUpFromAI({ question, pageContent, summary, conversationHistory }) {
+  const data = await browser.storage.local.get(['apiKey', 'provider', 'model', 'language']);
+
+  if (!data.apiKey) {
+    throw new Error('API key required. Please save your API key in Settings.');
+  }
+
+  const articleSnippet = (pageContent.text || '').substring(0, 10000);
+  const lang = data.language || 'english';
+  const langInstruction = lang !== 'english' ? `\n\nIMPORTANT: Your entire response must be in ${lang}.` : '';
+
+  const systemContent = `You are an AI assistant helping a user understand a web article.
+
+Article: "${pageContent.title}"
+URL: ${pageContent.url}
+
+Article content:
+${articleSnippet}
+
+You previously generated this summary:
+${summary}
+
+Answer follow-up questions based on the article above. Be concise and accurate. Plain text only, no markdown. If the answer is in the article, refer to it specifically. If it is not, answer from your general knowledge and note that the article doesn't cover this.${langInstruction}`;
+
+  const recentHistory = (conversationHistory || []).slice(-12);
+
+  const apiUrl = data.provider === 'openai'
+    ? 'https://api.openai.com/v1/chat/completions'
+    : 'https://openrouter.ai/api/v1/chat/completions';
+
+  const defaultModel = data.provider === 'openai' ? 'gpt-4o-mini' : 'openai/gpt-4o-mini';
+
+  let messages;
+  if (data.provider === 'openai') {
+    messages = [
+      { role: 'system', content: systemContent },
+      ...recentHistory,
+      { role: 'user', content: question }
+    ];
+  } else {
+    if (recentHistory.length === 0) {
+      messages = [{ role: 'user', content: systemContent + '\n\n---\n\nQuestion: ' + question }];
+    } else {
+      const firstUserWithContext = {
+        role: 'user',
+        content: systemContent + '\n\n---\n\nQuestion: ' + recentHistory[0].content
+      };
+      messages = [firstUserWithContext, ...recentHistory.slice(1), { role: 'user', content: question }];
+    }
+  }
+
+  const headers = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${sanitizeHeader(data.apiKey)}`
+  };
+
+  if (data.provider === 'openrouter') {
+    headers['HTTP-Referer'] = 'https://github.com/pashol/AI-Web-Summarizer';
+    headers['X-Title'] = 'AI Web Summarizer';
+  }
+
+  const response = await fetch(apiUrl, {
+    method: 'POST',
+    headers: headers,
+    body: JSON.stringify({
+      model: data.model || defaultModel,
+      messages: messages,
+      max_tokens: 800
+    })
+  });
+
+  const resData = await response.json();
+  if (!response.ok) {
+    throw new Error(resData.error?.message || 'API Error');
+  }
+
   return resData.choices[0].message.content;
 }
 
