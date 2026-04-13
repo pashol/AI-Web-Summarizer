@@ -11,7 +11,7 @@ This repo has **separate Firefox and Chrome implementations** at `firefox/` and 
 | Manifest | V2 | V3 |
 | API | `browser.*` (promises) | `chrome.*` (callbacks) |
 | Background | Event-driven script | Service worker |
-| Content limit | 12,000 chars | 10,000 chars |
+| Content limit | 12,000 chars extracted, 10,000 sent to API |
 
 ## Message Listener Pattern
 
