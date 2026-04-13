@@ -4,7 +4,7 @@ A powerful browser extension that uses advanced AI models to instantly summarize
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/H2H21VNZU)
 
-**Available for Firefox (Manifest V2) and Chrome (Manifest V3)** - Each browser has its own optimized version in dedicated folders.
+**Available for Firefox (Manifest V2) and [Chrome (Manifest V3)](https://chromewebstore.google.com/detail/kefgmibdgdokjdbgedfpncebalebjali)** - Each browser has its own optimized version in dedicated folders.
 
 > **A Note from the Author:** This is vibe coded. I asked Claude to give me a list of AI summarizers, and instead of providing a list, it created an earlier version of this extension. I kind of took it from there. The extension now has all the features I wanted, including full TTS controls with speed and voice selection. It works well for my needs!
 

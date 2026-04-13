@@ -57,7 +57,13 @@ AI Web Summarizer is a browser extension that uses artificial intelligence to su
 
 ### Chrome Installation
 
-1. Download or clone the repository
+**Option 1: Chrome Web Store** (recommended)
+1. Visit [AI Web Summarizer on Chrome Web Store](https://chromewebstore.google.com/detail/kefgmibdgdokjdbgedfpncebalebjali)
+2. Click "Add to Chrome"
+3. The extension icon appears in your Chrome toolbar
+
+**Option 2: Load unpacked**
+1. Download or clone this repository
 2. Open `chrome://extensions/`
 3. Enable **"Developer mode"** (toggle in top-right)
 4. Click **"Load unpacked"**
