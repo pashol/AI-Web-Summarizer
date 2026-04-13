@@ -10,9 +10,8 @@ const MODELS = {
     { id: 'anthropic/claude-haiku-4.5', name: 'Claude Haiku 4.5' },
     { id: 'openai/gpt-5.4-mini', name: 'GPT-5.4 Mini' },
     { id: 'mistralai/mistral-small-3.2-24b-instruct', name: 'Mistral Small 3.2' },
-    { id: 'anthropic/claude-sonnet-4.5', name: 'Claude Sonnet 4.5' },
     { id: 'anthropic/claude-sonnet-4.6', name: 'Claude Sonnet 4.6' },
-    { id: 'anthropic/claude-opus-4.5', name: 'Claude Opus 4.5' },
+    { id: 'anthropic/claude-opus-4.6', name: 'Claude Opus 4.6' },
   ],
   openai: [
     { id: 'gpt-5.4-nano', name: 'GPT-5.4 Nano' },
@@ -169,6 +168,16 @@ async function handleSummarizeRequest(tab, openInWindow, contextMenuSelection = 
       const wasTruncated = isSelectedText ? selectedText.length > 10000 : pageContent.wasTruncated;
 
       const useStreaming = data.streaming !== false;
+      if (useStreaming) {
+        await sendWithRetry(resultTabId, {
+          action: 'streamStart',
+          title: pageContent.title,
+          url: pageContent.url,
+          wasTruncated,
+          isSelectedText,
+          mode: 'summary'
+        });
+      }
       const summary = await getSummaryFromAI(data, contentForAI, null, isSelectedText, useStreaming ? { tabId: resultTabId } : null);
 
       // Send result to the result window tab with retries
@@ -259,6 +268,16 @@ async function handleFactCheckRequest(tab, selectedText) {
     }
 
     const useStreaming = data.streaming !== false;
+    if (useStreaming) {
+      await sendWithRetry(resultTabId, {
+        action: 'streamStart',
+        title: pageContent.title,
+        url: pageContent.url,
+        wasTruncated: false,
+        isSelectedText: !!selectedText,
+        mode: 'factcheck'
+      });
+    }
     const factCheck = await getFactCheckFromAI(data, pageContent, useStreaming ? { tabId: resultTabId } : null);
 
     await sendWithRetry(resultTabId, {
@@ -327,47 +346,7 @@ async function sendPendingResult(tabId) {
 
 // Function to inject into page for content extraction
 function extractPageContent() {
-  function isPdfViewer() {
-    return document.contentType === 'application/pdf'
-      || window.location.href.toLowerCase().endsWith('.pdf')
-      || window.location.href.toLowerCase().includes('.pdf?')
-      || window.location.href.toLowerCase().includes('.pdf#')
-      || !!document.querySelector('embed[type="application/pdf"]')
-      || !!document.querySelector('iframe[src*=".pdf"]')
-      || !!document.querySelector('#viewer.pdfViewer');
-  }
-
-  function extractPdfText() {
-    const viewer = document.querySelector('#viewer.pdfViewer')
-      || document.querySelector('.pdfViewer')
-      || document.querySelector('#viewer');
-
-    if (viewer) {
-      const textLayers = viewer.querySelectorAll('.textLayer');
-      if (textLayers.length > 0) {
-        const pages = [];
-        textLayers.forEach(layer => {
-          const pageText = (layer.textContent || '').replace(/\s+/g, ' ').trim();
-          if (pageText) pages.push(pageText);
-        });
-        return pages.join('\n\n');
-      }
-    }
-    return (document.body.innerText || document.body.textContent || '').replace(/\s+/g, ' ').trim();
-  }
-
   const selectedText = window.getSelection().toString().trim();
-
-  if (isPdfViewer()) {
-    const pdfText = extractPdfText();
-    return {
-      title: document.title || 'PDF Document',
-      url: window.location.href,
-      text: pdfText.substring(0, 12000),
-      selectedText: selectedText || null,
-      wasTruncated: pdfText.length > 12000
-    };
-  }
 
   const preferred = document.querySelector('article')
     || document.querySelector('main')
