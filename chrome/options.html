@@ -5,73 +5,154 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AI Web Summarizer - Preferences</title>
   <style>
+    :root {
+      --color-primary: #4F46E5;
+      --color-primary-hover: #4338CA;
+      --color-primary-focus: rgba(79, 70, 229, 0.2);
+      --color-bg: #F8FAFC;
+      --color-surface: #FFFFFF;
+      --color-text: #1E293B;
+      --color-text-muted: #64748B;
+      --color-border: #E2E8F0;
+      --color-success: #059669;
+      --color-success-bg: #D1FAE5;
+      --color-error: #DC2626;
+      --color-error-bg: #FEE2E2;
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --radius: 8px;
+      --transition: 150ms ease-out;
+    }
+
+    [data-theme="dark"] {
+      --color-bg: #0F172A;
+      --color-surface: #1E293B;
+      --color-text: #F1F5F9;
+      --color-text-muted: #94A3B8;
+      --color-border: #334155;
+      --color-success: #34D399;
+      --color-success-bg: #064E3B;
+      --color-error: #F87171;
+      --color-error-bg: #7F1D1D;
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --color-bg: #0F172A;
+        --color-surface: #1E293B;
+        --color-text: #F1F5F9;
+        --color-text-muted: #94A3B8;
+        --color-border: #334155;
+        --color-success: #34D399;
+        --color-success-bg: #064E3B;
+        --color-error: #F87171;
+        --color-error-bg: #7F1D1D;
+        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+      }
+    }
+    *, *::before, *::after { box-sizing: border-box; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
       margin: 0;
       padding: 0;
-      background: #f5f5f5;
-      color: #333;
+      background: var(--color-bg);
+      color: var(--color-text);
     }
     .container {
       max-width: 640px;
       margin: 40px auto;
       padding: 0 20px;
     }
+    .header {
+      margin-bottom: 32px;
+    }
     h1 {
       font-size: 24px;
-      margin: 0 0 8px 0;
+      font-weight: 600;
+      margin: 0 0 4px 0;
+      color: var(--color-text);
     }
     .subtitle {
-      color: #888;
+      color: var(--color-text-muted);
       font-size: 14px;
-      margin-bottom: 30px;
+      margin: 0;
     }
     .section {
-      background: white;
-      border-radius: 8px;
+      background: var(--color-surface);
+      border-radius: 12px;
       padding: 24px;
       margin-bottom: 20px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      box-shadow: var(--shadow-md);
+      transition: transform var(--transition), box-shadow var(--transition);
+    }
+    .section:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -1px rgba(0, 0, 0, 0.05);
     }
     .section h2 {
       font-size: 16px;
       font-weight: 600;
-      margin: 0 0 18px 0;
-      padding-bottom: 10px;
-      border-bottom: 1px solid #eee;
-      color: #444;
+      margin: 0 0 20px 0;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--color-border);
+      color: var(--color-text);
     }
     label {
       display: block;
       margin-bottom: 6px;
       font-size: 13px;
       font-weight: 500;
-      color: #555;
+      color: var(--color-text);
     }
-    select, input {
+    select, input[type="text"], input[type="password"] {
       width: 100%;
-      padding: 9px 10px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
+      height: 44px;
+      padding: 0 12px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
       font-size: 14px;
-      box-sizing: border-box;
+      background: var(--color-surface);
+      color: var(--color-text);
+      transition: border-color var(--transition), box-shadow var(--transition);
       margin-bottom: 16px;
     }
-    select:focus, input:focus {
+    select:focus, input[type="text"]:focus, input[type="password"]:focus {
       outline: none;
-      border-color: #0066cc;
-      box-shadow: 0 0 0 2px rgba(0,102,204,0.15);
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px var(--color-primary-focus);
     }
     input[type="range"] {
       padding: 0;
       margin-bottom: 4px;
+      height: 6px;
+      -webkit-appearance: none;
+      background: var(--color-border);
+      border-radius: 3px;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      background: var(--color-primary);
+      border-radius: 50%;
+      cursor: pointer;
+      transition: transform var(--transition);
+    }
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.1);
     }
     .slider-container {
       margin-bottom: 16px;
     }
     .slider-value {
       font-size: 12px;
-      color: #666;
+      color: var(--color-text-muted);
       text-align: right;
       margin-bottom: 8px;
     }
@@ -84,84 +165,156 @@
       margin-bottom: 0;
     }
     .toggle-vis-btn {
-      padding: 8px 14px;
-      background: #6c757d;
+      height: 44px;
+      padding: 0 16px;
+      background: var(--color-text-muted);
       color: white;
       border: none;
-      border-radius: 4px;
+      border-radius: var(--radius);
       font-size: 13px;
+      font-weight: 500;
       cursor: pointer;
       white-space: nowrap;
+      transition: background var(--transition), transform var(--transition);
     }
-    .toggle-vis-btn:hover { background: #5a6268; }
+    .toggle-vis-btn:hover {
+      background: #475569;
+    }
+    .toggle-vis-btn:active {
+      transform: scale(0.98);
+    }
     .status-msg {
       display: none;
-      padding: 10px 14px;
-      border-radius: 6px;
+      padding: 12px 16px;
+      border-radius: var(--radius);
       font-size: 14px;
       margin-top: 12px;
     }
     .status-msg.success {
       display: block;
-      background: #d4edda;
-      color: #155724;
-      border: 1px solid #c3e6cb;
+      background: var(--color-success-bg);
+      color: var(--color-success);
+      border: 1px solid #A7F3D0;
     }
     .status-msg.error {
       display: block;
-      background: #f8d7da;
-      color: #721c24;
-      border: 1px solid #f5c6cb;
+      background: var(--color-error-bg);
+      color: var(--color-error);
+      border: 1px solid #FECACA;
     }
     .footer {
       text-align: center;
-      padding: 20px 0;
-      color: #bbb;
+      padding: 24px 0;
+      color: var(--color-text-muted);
       font-size: 12px;
     }
-    .footer a { color: #bbb; }
+    .footer a {
+      color: var(--color-text-muted);
+      text-decoration: none;
+      transition: color var(--transition);
+    }
+    .footer a:hover {
+      color: var(--color-primary);
+    }
     .btn-row {
       display: flex;
-      gap: 10px;
-      margin-top: 4px;
+      gap: 12px;
+      margin-top: 8px;
     }
     .btn-primary {
-      padding: 10px 24px;
-      background: #0066cc;
+      height: 44px;
+      padding: 0 24px;
+      background: var(--color-primary);
       color: white;
       border: none;
-      border-radius: 6px;
+      border-radius: var(--radius);
       font-size: 14px;
       font-weight: 500;
       cursor: pointer;
+      transition: background var(--transition), transform var(--transition);
     }
-    .btn-primary:hover { background: #0052a3; }
+    .btn-primary:hover {
+      background: var(--color-primary-hover);
+    }
+    .btn-primary:active {
+      transform: scale(0.98);
+    }
+    .btn-primary:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--color-primary-focus);
+    }
     .btn-secondary {
-      padding: 10px 24px;
-      background: #17a2b8;
-      color: white;
-      border: none;
-      border-radius: 6px;
+      height: 44px;
+      padding: 0 24px;
+      background: var(--color-surface);
+      color: var(--color-text);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
       font-size: 14px;
       font-weight: 500;
       cursor: pointer;
+      transition: background var(--transition), border-color var(--transition), transform var(--transition);
     }
-    .btn-secondary:hover { background: #138496; }
+    .btn-secondary:hover {
+      background: var(--color-bg);
+      border-color: #CBD5E1;
+    }
+    .btn-secondary:active {
+      transform: scale(0.98);
+    }
+    .btn-secondary:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px var(--color-primary-focus);
+    }
     .hint {
       font-size: 12px;
-      color: #999;
+      color: var(--color-text-muted);
       margin-top: 4px;
       margin-bottom: 16px;
     }
-    .link-row {
-      margin-top: 8px;
-    }
     .link-row a {
-      color: #0066cc;
+      color: var(--color-primary);
       font-size: 13px;
       text-decoration: none;
+      transition: color var(--transition);
     }
-    .link-row a:hover { text-decoration: underline; }
+    .link-row a:hover {
+      text-decoration: underline;
+    }
+    .theme-segmented-control {
+      display: flex;
+      background: var(--color-border);
+      border-radius: var(--radius);
+      padding: 4px;
+      gap: 4px;
+      margin-bottom: 16px;
+    }
+    .theme-option {
+      flex: 1;
+      height: 36px;
+      border: none;
+      background: transparent;
+      color: var(--color-text-muted);
+      font-size: 13px;
+      font-weight: 500;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background var(--transition), color var(--transition);
+    }
+    .theme-option:hover {
+      color: var(--color-text);
+    }
+    .theme-option.active {
+      background: var(--color-surface);
+      color: var(--color-text);
+      box-shadow: var(--shadow-sm);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        transition-duration: 0ms !important;
+        animation-duration: 0ms !important;
+      }
+    }
   </style>
 </head>
 <body>
@@ -248,11 +401,22 @@
     </div>
 
     <div class="section">
+      <h2>Appearance</h2>
+
+      <label>Theme:</label>
+      <div class="theme-segmented-control" id="themeControl">
+        <button type="button" class="theme-option" data-value="light">Light</button>
+        <button type="button" class="theme-option" data-value="dark">Dark</button>
+        <button type="button" class="theme-option active" data-value="auto">Auto</button>
+      </div>
+    </div>
+
+    <div class="section">
       <h2>Keyboard Shortcuts</h2>
-      <p style="font-size:14px;color:#555;margin:0 0 8px;">
+      <p style="font-size:14px;color:var(--color-text-muted);margin:0 0 8px;">
         Summarize page: <strong>Ctrl+Alt+S</strong>
       </p>
-      <p style="font-size:14px;color:#555;margin:0 0 8px;">
+      <p style="font-size:14px;color:var(--color-text-muted);margin:0 0 8px;">
         Fact check page: <strong>Ctrl+Alt+F</strong>
       </p>
       <div class="hint" style="margin-top:0;">

@@ -14,7 +14,30 @@ document.getElementById('ext-version').textContent = chrome.runtime.getManifest(
 chrome.runtime.sendMessage({ action: 'getModels' }, (response) => {
   MODELS = response.models;
   loadSettings();
+  initTheme();
 });
+
+function initTheme() {
+  chrome.storage.local.get(['theme'], (data) => {
+    const theme = data.theme || 'auto';
+    applyTheme(theme);
+    updateThemeUI(theme);
+  });
+}
+
+function applyTheme(theme) {
+  if (theme === 'auto') {
+    document.documentElement.removeAttribute('data-theme');
+  } else {
+    document.documentElement.setAttribute('data-theme', theme);
+  }
+}
+
+function updateThemeUI(theme) {
+  document.querySelectorAll('.theme-option').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.value === theme);
+  });
+}
 
 function loadVoices() {
   availableVoices = window.speechSynthesis.getVoices();
@@ -152,10 +175,18 @@ document.getElementById('toggleKeyBtn').addEventListener('click', () => {
   }
 });
 
+document.getElementById('themeControl').addEventListener('click', (e) => {
+  if (e.target.classList.contains('theme-option')) {
+    const theme = e.target.dataset.value;
+    applyTheme(theme);
+    updateThemeUI(theme);
+  }
+});
+
 function loadSettings() {
   chrome.storage.local.get([
     'provider', 'apiKeys', 'model', 'language',
-    'ttsRate', 'ttsPitch', 'ttsVoice', 'streaming'
+    'ttsRate', 'ttsPitch', 'ttsVoice', 'streaming', 'theme'
   ], (data) => {
     const provider = data.provider || 'openrouter';
     document.getElementById('provider').value = provider;
@@ -191,10 +222,11 @@ document.getElementById('saveBtn').addEventListener('click', () => {
   const ttsPitch = document.getElementById('ttsPitch').value;
   const ttsVoice = document.getElementById('ttsVoice').value;
   const streaming = document.getElementById('streaming').checked;
+  const theme = document.querySelector('.theme-option.active').dataset.value;
 
   currentApiKeys[provider] = apiKey;
 
-  chrome.storage.local.set({ provider, apiKeys: currentApiKeys, model, language, ttsRate, ttsPitch, ttsVoice, streaming }, () => {
+  chrome.storage.local.set({ provider, apiKeys: currentApiKeys, model, language, ttsRate, ttsPitch, ttsVoice, streaming, theme }, () => {
     const msg = document.getElementById('statusMsg');
     msg.className = 'status-msg success';
     msg.textContent = 'Preferences saved.';

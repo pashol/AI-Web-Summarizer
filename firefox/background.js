@@ -143,11 +143,16 @@ function getApiKey(data) {
   return '';
 }
 
+function hasApiKey(data) {
+  const key = getApiKey(data);
+  return key && key.trim().length > 0;
+}
+
 // Centralized function to handle summarization
 async function handleSummarizeRequest(tab, openInWindow, contextMenuSelection = null) {
   const data = await browser.storage.local.get(['apiKeys', 'apiKey', 'provider', 'model', 'language', 'streaming']);
 
-  if (!getApiKey(data)) {
+  if (!hasApiKey(data)) {
     if (openInWindow) {
       browser.notifications.create({
         type: "basic",
@@ -247,7 +252,7 @@ async function handleSummarizeRequest(tab, openInWindow, contextMenuSelection = 
 async function handleFactCheckRequest(tab, selectedText) {
   const data = await browser.storage.local.get(['apiKeys', 'apiKey', 'provider', 'model', 'language', 'streaming']);
 
-  if (!getApiKey(data)) {
+  if (!hasApiKey(data)) {
     browser.notifications.create({
       type: "basic",
       iconUrl: "icons/icon48.png",
@@ -314,7 +319,7 @@ async function handleFactCheckRequest(tab, selectedText) {
 async function handleFactCheckPageFromPopup(tab) {
   const data = await browser.storage.local.get(['apiKeys', 'apiKey', 'provider', 'model', 'language']);
 
-  if (!getApiKey(data)) {
+  if (!hasApiKey(data)) {
     throw new Error('API key required. Please save your API key in Settings.');
   }
 
@@ -351,7 +356,7 @@ async function sendPendingResult(tabId) {
 async function handleCustomPrompt(prompt) {
   const data = await browser.storage.local.get(['apiKeys', 'apiKey', 'provider', 'model']);
 
-  if (!getApiKey(data)) {
+  if (!hasApiKey(data)) {
     throw new Error('API key required. Please save your API key in Settings.');
   }
 
@@ -503,7 +508,7 @@ async function getSummaryFromAI(settings, pageContent, customPrompt, isSelectedT
 async function getFollowUpFromAI({ question, pageContent, summary, conversationHistory }) {
   const data = await browser.storage.local.get(['apiKeys', 'apiKey', 'provider', 'model', 'language']);
 
-  if (!getApiKey(data)) {
+  if (!hasApiKey(data)) {
     throw new Error('API key required. Please save your API key in Settings.');
   }
 

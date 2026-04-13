@@ -5,21 +5,80 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AI Summary Result</title>
   <style>
+    :root {
+      --color-bg: #f5f5f5;
+      --color-surface: #ffffff;
+      --color-text: #333333;
+      --color-text-muted: #666666;
+      --color-border: #e0e0e0;
+      --color-primary: #0066cc;
+      --color-primary-hover: #0052a3;
+      --color-success: #28a745;
+      --color-success-hover: #218838;
+      --color-error: #c00;
+      --color-error-bg: #fff3f3;
+      --color-error-border: #ffcccc;
+      --color-chat-user: #e8f0fe;
+      --color-chat-assistant: #f1f3f4;
+      --shadow-md: 0 2px 8px rgba(0,0,0,0.1);
+      --radius: 6px;
+      --radius-lg: 8px;
+    }
+
+    [data-theme="dark"] {
+      --color-bg: #1a1a2e;
+      --color-surface: #16213e;
+      --color-text: #e0e0e0;
+      --color-text-muted: #a0a0a0;
+      --color-border: #2d3a4f;
+      --color-primary: #4da6ff;
+      --color-primary-hover: #3399ff;
+      --color-success: #3dd68c;
+      --color-success-hover: #2eb872;
+      --color-error: #ff6b6b;
+      --color-error-bg: #2d1f1f;
+      --color-error-border: #5c2828;
+      --color-chat-user: #1e3a5f;
+      --color-chat-assistant: #252535;
+      --shadow-md: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --color-bg: #1a1a2e;
+        --color-surface: #16213e;
+        --color-text: #e0e0e0;
+        --color-text-muted: #a0a0a0;
+        --color-border: #2d3a4f;
+        --color-primary: #4da6ff;
+        --color-primary-hover: #3399ff;
+        --color-success: #3dd68c;
+        --color-success-hover: #2eb872;
+        --color-error: #ff6b6b;
+        --color-error-bg: #2d1f1f;
+        --color-error-border: #5c2828;
+        --color-chat-user: #1e3a5f;
+        --color-chat-assistant: #252535;
+        --shadow-md: 0 2px 8px rgba(0,0,0,0.3);
+      }
+    }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       margin: 0;
       padding: 20px;
-      background: #f5f5f5;
+      background: var(--color-bg);
       height: 100%;
       box-sizing: border-box;
+      color: var(--color-text);
     }
     .container {
       max-width: 800px;
       margin: 0 auto;
-      background: white;
+      background: var(--color-surface);
       padding: 30px;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
       display: flex;
       flex-direction: column;
       min-height: calc(100vh - 40px);
@@ -28,22 +87,22 @@
     h1 {
       margin: 0 0 10px 0;
       font-size: 24px;
-      color: #333;
+      color: var(--color-text);
     }
     .page-info {
       margin-bottom: 20px;
       padding-bottom: 20px;
-      border-bottom: 2px solid #e0e0e0;
+      border-bottom: 2px solid var(--color-border);
       flex-shrink: 0;
     }
     .url {
-      color: #0066cc;
+      color: var(--color-primary);
       font-size: 14px;
       word-break: break-all;
       margin-top: 5px;
     }
     .url a {
-      color: #0066cc;
+      color: var(--color-primary);
       text-decoration: none;
     }
     .url a:hover {
@@ -52,12 +111,12 @@
     .loading {
       text-align: center;
       padding: 40px;
-      color: #666;
+      color: var(--color-text-muted);
       font-style: italic;
     }
     .spinner {
-      border: 3px solid #f3f3f3;
-      border-top: 3px solid #0066cc;
+      border: 3px solid var(--color-border);
+      border-top: 3px solid var(--color-primary);
       border-radius: 50%;
       width: 40px;
       height: 40px;
@@ -71,18 +130,18 @@
     .summary {
       font-size: 15px;
       line-height: 1.7;
-      color: #333;
+      color: var(--color-text);
       white-space: pre-wrap;
       flex: 1 0 auto;
       overflow-y: auto;
       min-height: 100px;
     }
     .error {
-      background: #fff3f3;
-      border: 1px solid #ffcccc;
-      color: #c00;
+      background: var(--color-error-bg);
+      border: 1px solid var(--color-error-border);
+      color: var(--color-error);
       padding: 15px;
-      border-radius: 6px;
+      border-radius: var(--radius);
       margin-top: 20px;
     }
     .actions {
@@ -94,41 +153,58 @@
     }
     button {
       padding: 10px 20px;
-      background: #0066cc;
+      background: var(--color-primary);
       color: white;
       border: none;
-      border-radius: 6px;
+      border-radius: var(--radius);
       font-size: 14px;
       cursor: pointer;
       font-weight: 500;
+      transition: background-color 150ms ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
     }
     button:hover {
-      background: #0052a3;
+      background: var(--color-primary-hover);
+    }
+    button:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
     }
     #speakBtn {
-      background: #28a745;
+      background: var(--color-success);
     }
     #speakBtn:hover {
-      background: #218838;
+      background: var(--color-success-hover);
     }
     #speakBtn.speaking {
-      background: #dc3545;
+      background: var(--color-error);
     }
     .copied-notification {
       display: none;
       position: fixed;
       top: 20px;
       right: 20px;
-      background: #28a745;
+      background: var(--color-success);
       color: white;
       padding: 12px 20px;
-      border-radius: 6px;
+      border-radius: var(--radius);
       box-shadow: 0 2px 8px rgba(0,0,0,0.2);
       z-index: 1000;
     }
     .copied-notification.show {
-      display: block;
+      display: flex;
+      align-items: center;
+      gap: 8px;
       animation: slideIn 0.3s ease-out;
+    }
+    .copied-notification::before {
+      content: '';
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E") center/contain no-repeat;
     }
     @keyframes slideIn {
       from {
@@ -140,17 +216,16 @@
         opacity: 1;
       }
     }
-    /* Follow-up chat section */
     .chat-section {
       margin-top: 30px;
       padding-top: 20px;
-      border-top: 2px solid #e0e0e0;
+      border-top: 2px solid var(--color-border);
       display: none;
       flex-shrink: 0;
     }
     .chat-section h2 {
       font-size: 16px;
-      color: #555;
+      color: var(--color-text);
       margin: 0 0 14px 0;
       font-weight: 600;
     }
@@ -164,22 +239,22 @@
     }
     .chat-message {
       padding: 10px 14px;
-      border-radius: 8px;
+      border-radius: var(--radius-lg);
       font-size: 14px;
       line-height: 1.6;
       white-space: pre-wrap;
       word-wrap: break-word;
     }
     .chat-message.user {
-      background: #e8f0fe;
-      color: #1a1a1a;
+      background: var(--color-chat-user);
+      color: var(--color-text);
       align-self: flex-end;
       max-width: 85%;
       border-bottom-right-radius: 2px;
     }
     .chat-message.assistant {
-      background: #f1f3f4;
-      color: #333;
+      background: var(--color-chat-assistant);
+      color: var(--color-text);
       align-self: flex-start;
       max-width: 85%;
       border-bottom-left-radius: 2px;
@@ -200,19 +275,20 @@
     .chat-input-area textarea {
       width: 100%;
       padding: 10px 12px;
-      border: 1px solid #ddd;
-      border-radius: 6px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
       font-size: 14px;
       font-family: inherit;
       resize: vertical;
       min-height: 66px;
       box-sizing: border-box;
-      color: #333;
+      color: var(--color-text);
+      background: var(--color-surface);
     }
     .chat-input-area textarea:focus {
       outline: none;
-      border-color: #0066cc;
-      box-shadow: 0 0 0 2px rgba(0,102,204,0.15);
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 15%, transparent);
     }
     #askBtn {
       align-self: flex-end;
@@ -221,12 +297,12 @@
       min-width: 70px;
     }
     #askBtn:disabled {
-      background: #aaa;
+      background: var(--color-text-muted);
       cursor: not-allowed;
     }
     .chat-thinking {
       font-size: 13px;
-      color: #888;
+      color: var(--color-text-muted);
       font-style: italic;
       display: none;
       padding: 2px 0 6px;
@@ -249,9 +325,18 @@
     <div class="error" id="error" style="display: none;"></div>
     
     <div class="actions" id="actions" style="display: none;">
-      <button id="speakBtn">🔊 Read Aloud</button>
-      <button id="copyBtn">📋 Copy Summary</button>
-      <button id="followUpToggleBtn">💬 Follow Up</button>
+      <button id="speakBtn" aria-label="Read aloud">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg>
+        Read Aloud
+      </button>
+      <button id="copyBtn" aria-label="Copy summary">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+        Copy Summary
+      </button>
+      <button id="followUpToggleBtn" aria-label="Follow up">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        Follow Up
+      </button>
     </div>
 
     <div class="chat-section" id="chatSection">
@@ -266,7 +351,7 @@
   </div>
 
   <div class="copied-notification" id="copiedNotification">
-    ✓ Copied to clipboard!
+    Copied to clipboard!
   </div>
 
   <script src="result.js"></script>

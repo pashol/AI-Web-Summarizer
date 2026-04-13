@@ -18,7 +18,19 @@ chrome.runtime.sendMessage({ action: 'getModels' }, (response) => {
     MODELS = response.models;
     loadSettings();
   }
+  applyStoredTheme();
 });
+
+function applyStoredTheme() {
+  chrome.storage.local.get(['theme'], (data) => {
+    const theme = data.theme || 'auto';
+    if (theme === 'auto') {
+      document.documentElement.removeAttribute('data-theme');
+    } else {
+      document.documentElement.setAttribute('data-theme', theme);
+    }
+  });
+}
 
 function loadVoices() {
   availableVoices = synth.getVoices();
@@ -233,8 +245,8 @@ document.getElementById('summarizeBtn').addEventListener('click', async () => {
       const note = document.createElement('div');
       note.style.cssText = 'font-size: 11px; color: #888; margin-top: 8px; font-style: italic;';
       note.textContent = response.isSelectedText
-        ? 'Note: selected text was truncated to 10,000 characters.'
-        : 'Note: page content was truncated to 10,000 characters.';
+        ? 'Note: selected text was truncated to 12,000 characters.'
+        : 'Note: page content was truncated to 12,000 characters.';
       result.appendChild(note);
     }
     speakBtn.style.display = 'block';
@@ -320,7 +332,7 @@ document.getElementById('sendPromptBtn').addEventListener('click', async () => {
     if (response.error) throw new Error(response.error);
 
     result.className = 'summary';
-    result.textContent = response.summary;
+    result.textContent = response;
     speakBtn.style.display = 'block';
   } catch (error) {
     result.className = 'summary error';
@@ -368,6 +380,8 @@ document.getElementById('speakBtn').addEventListener('click', () => {
 function updateSpeakButton(speaking) {
   isSpeaking = speaking;
   const btn = document.getElementById('speakBtn');
-  btn.textContent = speaking ? '⏹ Stop Reading' : '🔊 Read Aloud';
+  btn.innerHTML = speaking 
+    ? '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg> Stop Reading'
+    : '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg> Read Aloud';
   btn.classList.toggle('speaking', speaking);
 }

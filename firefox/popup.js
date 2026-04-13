@@ -16,7 +16,19 @@ document.getElementById('ext-version').textContent = browser.runtime.getManifest
 browser.runtime.sendMessage({ action: 'getModels' }).then(response => {
   MODELS = response.models;
   loadSettings();
+  applyStoredTheme();
 });
+
+function applyStoredTheme() {
+  browser.storage.local.get(['theme'], (data) => {
+    const theme = data.theme || 'auto';
+    if (theme === 'auto') {
+      document.documentElement.removeAttribute('data-theme');
+    } else {
+      document.documentElement.setAttribute('data-theme', theme);
+    }
+  });
+}
 
 function loadVoices() {
   availableVoices = synth.getVoices();
@@ -363,6 +375,8 @@ document.getElementById('speakBtn').addEventListener('click', async () => {
 function updateSpeakButton(speaking) {
   isSpeaking = speaking;
   const btn = document.getElementById('speakBtn');
-  btn.textContent = speaking ? '⏹ Stop Reading' : '🔊 Read Aloud';
+  btn.innerHTML = speaking 
+    ? '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg> Stop Reading'
+    : '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></svg> Read Aloud';
   btn.classList.toggle('speaking', speaking);
 }
