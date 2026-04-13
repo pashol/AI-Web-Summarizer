@@ -32,9 +32,8 @@ function extractMainContent() {
     'aside', 'iframe', 'noscript', '[role="navigation"]',
     '[role="banner"]', '[role="complementary"]', '.ad',
     '.advertisement', '.sidebar', '.menu',
-    // Hidden/invisible elements
-    '[aria-hidden="true"]', '[hidden]', '.hidden',
-    '.visually-hidden', '.sr-only',
+    // Hidden/invisible elements (aria-hidden omitted: paywall sites use it on article containers)
+    '[hidden]', '.visually-hidden', '.sr-only',
     // Common boilerplate
     'button', 'form', '[class*="cookie"]', '[class*="subscribe"]',
     '[class*="share"]', '[class*="social"]'
