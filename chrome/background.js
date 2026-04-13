@@ -168,7 +168,7 @@ async function handleSummarizeRequest(tab, openInWindow, contextMenuSelection = 
         url: pageContent.url,
         isSelectedText,
         wasTruncated,
-        pageText: contentForAI.text
+        pageText: pageContent.text
       });
     } catch (error) {
       console.error('Summarization error:', error);
