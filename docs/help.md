@@ -102,6 +102,10 @@ On first use, the Settings panel opens automatically:
 | **TTS Voice** | Voice used for text-to-speech |
 | **TTS Speed** | Speech rate (0.5x to 2.0x) |
 | **TTS Pitch** | Voice pitch (0.5 to 2.0) |
+| **Theme** | Light or dark appearance |
+| **Extraction Mode** | How page content is extracted (Auto, Readability, Current) |
+| **Streaming** | Show summary text as it generates in real-time |
+| **Usage Statistics** | Local metrics tracking (can be disabled) |
 
 ---
 
@@ -152,15 +156,25 @@ On first use, the Settings panel opens automatically:
 
 ### Content Extraction
 
-The extension intelligently extracts content by:
-- Removing ads, navigation menus, sidebars
-- Stripping headers and footers
-- Focusing on main article content
-- Handling dynamic content (JavaScript-rendered pages)
+The extension intelligently extracts content using one of three modes:
+
+**Auto (default)**: Uses Mozilla Readability for article-style pages, falls back to DOM extraction for other pages. Best for most users.
+
+**Readability**: Always uses the Mozilla Readability parser. Produces cleaner output for news articles and blog posts but may fail on non-article pages.
+
+**Current (legacy)**: Uses the built-in DOM-based extraction. Good for non-article pages where Readability doesn't work well.
+
+All modes:
+- Remove ads, navigation menus, sidebars
+- Strip headers and footers
+- Focus on main article content
+- Handle dynamic content (JavaScript-rendered pages)
 
 **Limits:**
 - Firefox: Extracts up to 12,000 characters, sends 10,000 to API
 - Chrome: Extracts up to 12,000 characters, sends 10,000 to API
+
+Change extraction mode in Settings → Content Extraction.
 
 ### Fact-Check Mode
 
@@ -189,12 +203,26 @@ After receiving a summary, ask follow-up questions:
 2. Type question in chat input
 3. Get context-aware responses
 
+### Usage Statistics
+
+The extension tracks local usage metrics to help you understand your usage:
+
+- **Actions**: Summarizations, fact checks, custom prompts, follow-up questions
+- **Extraction**: Which extraction mode is used and how often Readability succeeds or falls back
+- **Provider & Model**: Breakdown of API calls by provider (OpenAI/OpenRouter) and model
+- **Errors**: API and extraction error counts
+- **Timeline**: First and last usage dates
+
+**Privacy**: All data is stored locally in your browser and is never sent anywhere. You can disable or reset statistics at any time in Settings → Usage Statistics.
+
 ### Streaming Responses
 
 Watch summaries generate in real-time:
 - Text appears progressively
 - No waiting for complete response
 - Cancel mid-generation if needed
+
+Enable/disable in Settings → Streaming.
 
 ---
 
@@ -519,5 +547,5 @@ For full details, see [Privacy Policy](privacy-policy.md).
 
 ---
 
-**Version**: Firefox 2.0.0 | Chrome 2.0.0  
-**Last Updated**: April 13, 2026
+**Version**: Firefox 2.1.0 | Chrome 2.1.0  
+**Last Updated**: April 15, 2026

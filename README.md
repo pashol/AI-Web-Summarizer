@@ -10,29 +10,25 @@ A powerful browser extension that uses advanced AI models to instantly summarize
 
 ---
 
-## 📰 Latest Release: v2.0.0
+## 📰 Latest Release: v2.1.0
 
 ### ✨ What's New
-- **Per-provider API keys**: Separate API keys for OpenAI and OpenRouter, seamlessly switching between providers
-- **Popup quick settings**: Provider, model, and language can now be changed directly in the popup without opening full settings
-- **Follow-up chat**: Ask follow-up questions about the summarized content in the result window
-- **Fact-check mode**: Verify claims on any webpage with AI-powered fact-checking
-- **Keyboard shortcuts**: Ctrl+Alt+S to summarize, Ctrl+Alt+F to fact-check
-- **Streaming responses**: Watch summaries generate in real-time
+- **Readability extraction**: New content extraction modes — Auto (default), Readability (Mozilla parser), and Current (legacy DOM-based)
+- **Usage statistics**: Local metrics dashboard tracking summarizations, fact checks, extraction methods, provider usage, and errors
+- **Theme selector**: Light/dark theme preference in full settings
 
 ### 🔧 Improvements
-- **UI polish**: Replaced all emoji icons with proper SVG icons for consistent rendering
-- **Theme consistency**: Unified color scheme with proper light/dark mode support across all components
-- **Button styling**: Improved hover states, focus indicators, and visual hierarchy
-- **Better settings UX**: Full settings page accessible via gear icon in popup
+- **Better article extraction**: Readability parser improves content quality for news sites and blogs
+- **Extraction mode control**: Choose how content is extracted per your preference
+- **Metrics opt-in**: Usage statistics stored locally, never sent anywhere — disable or reset anytime
 
 ### 🐛 Bug Fixes
-- Fixed streaming response handling
-- Improved result window layout and scrolling
+- Fixed unsafe innerHTML assignments in speak/copy buttons
+- Fixed GitHub link casing
 
 ---
 
-## 📰 Previous Release: v1.1.0
+## 📰 Previous Release: v2.0.0
 
 ### ✨ What's New
 - **Enhanced TTS controls**: Full voice selection with speed (0.5x-2.0x) and pitch (0.5-2.0) adjustment
@@ -82,8 +78,10 @@ You need an API key from one of the following providers:
 - **Free tier**: Auto-selects best free model via OpenRouter
 
 ### 🎯 Intelligent Content Extraction
+- **Readability mode**: Mozilla Readability parser for cleaner article extraction
+- **Auto mode**: Uses Readability for articles, falls back to DOM extraction
+- **Current mode**: Legacy DOM-based extraction
 - Strips ads, navigation, sidebars, headers, and footers
-- Focuses only on main article content
 - Supports text selection for targeted summarization
 
 ### 💬 Interactive Chat Interface
@@ -98,6 +96,12 @@ You need an API key from one of the following providers:
 - Speed control (0.5x to 2.0x)
 - Pitch adjustment (0.5 to 2.0)
 - Language-aware voice auto-selection
+
+### 📊 Usage Statistics
+- Local metrics dashboard: track summarizations, fact checks, extraction methods
+- Provider and model usage breakdown
+- All data stored locally — never transmitted
+- Disable or reset anytime
 
 ### 🖱️ Flexible Access
 - **Popup mode**: Click extension icon for quick access
@@ -123,7 +127,7 @@ See [docs/help.md](docs/help.md) for detailed usage guide, TTS controls, and fea
 
 | | Firefox | Chrome |
 |---|---|---|
-| Version | 2.0.0 | 2.0.0 |
+| Version | 2.1.0 | 2.1.0 |
 | Manifest | V2 | V3 |
 | Background | Event-driven script | Service worker |
 | Content limit | 12,000 chars extracted, 10,000 sent to API | 12,000 chars extracted, 10,000 sent to API |
@@ -180,5 +184,5 @@ This project is open source. Feel free to use, modify, and distribute as you see
 
 ---
 
-**Version**: Firefox 2.0.0 | Chrome 2.0.0
-**Last Updated**: April 14, 2026
+**Version**: Firefox 2.1.0 | Chrome 2.1.0
+**Last Updated**: April 15, 2026

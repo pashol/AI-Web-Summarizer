@@ -29,11 +29,14 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
 - API keys are stored as `apiKeys: { openrouter: '...', openai: '...' }` — **not** a single `apiKey`
 - Use `getApiKey(data)` helper in background.js to resolve the correct key for the current provider
 - Old `apiKey` is automatically migrated to `apiKeys` on `onInstalled`
+- Extraction mode stored as `extractionMode: 'auto' | 'readability' | 'current'`
+- Theme stored as `theme: 'light' | 'dark'`
+- Metrics stored as `metrics: { enabled, counts, extraction, provider, model, errors, daily }`
 
 ## Settings Architecture
 
 **popup.html (quick settings)**: Provider, Model, Language only + "Full Settings" button
-**options.html (full settings)**: Provider, API Key (per-provider), Model, Language, TTS, Streaming, Shortcuts
+**options.html (full settings)**: Provider, API Key (per-provider), Model, Language, Extraction Mode, TTS, Streaming, Theme, Usage Statistics, Shortcuts
 
 The API key field in options.html dynamically shows the key for the currently selected provider. Switching providers saves the current key and loads the other one.
 
@@ -59,3 +62,14 @@ Add to `MODELS` object in `background.js` in both `firefox/` and `chrome/`.
 ## Adding a Language
 
 Add option to `popup.html` and `options.html`, then update `langMap` in `popup.js`, `result.js`, and `options.js` in both directories.
+
+## Creating Submission Zips
+
+- **Firefox (AMO)**: Zip the *contents* of `firefox/` (not the folder itself):
+  ```bash
+  cd firefox && zip -r ../aiwebsummarizer-firefox.zip .
+  ```
+- **Chrome (CWS)**: Zip the `chrome/` folder itself:
+  ```bash
+  zip -r aiwebsummarizer-chrome.zip chrome/
+  ```
