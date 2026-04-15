@@ -21,6 +21,76 @@ const MODELS = {
   ]
 };
 
+// Default metrics structure
+const DEFAULT_METRICS = {
+  enabled: true,
+  firstUsed: null,
+  lastUsed: null,
+  counts: { summarize: 0, factCheck: 0, customPrompt: 0, followUp: 0 },
+  extraction: { auto: 0, readability: 0, current: 0, readabilitySuccess: 0, readabilityFallback: 0, truncatedCount: 0 },
+  provider: { openrouter: 0, openai: 0 },
+  model: {},
+  errors: { apiError: 0, extractionError: 0 },
+  daily: {}
+};
+
+async function recordMetric(entry) {
+  const data = await browser.storage.local.get(['metrics']);
+  const metrics = data.metrics || { ...DEFAULT_METRICS };
+  if (!metrics.enabled) return;
+
+  const now = new Date().toISOString();
+  const today = now.slice(0, 10);
+
+  if (!metrics.firstUsed) metrics.firstUsed = now;
+  metrics.lastUsed = now;
+
+  if (entry.type === 'summarize') {
+    metrics.counts.summarize++;
+  } else if (entry.type === 'factCheck') {
+    metrics.counts.factCheck++;
+  } else if (entry.type === 'customPrompt') {
+    metrics.counts.customPrompt++;
+  } else if (entry.type === 'followUp') {
+    metrics.counts.followUp++;
+  }
+
+  if (entry.extractionMethod !== undefined) {
+    metrics.extraction[entry.extractionMethod] = (metrics.extraction[entry.extractionMethod] || 0) + 1;
+  }
+  if (entry.extractionUsed) {
+    if (entry.extractionUsed === 'readability') {
+      metrics.extraction.readabilitySuccess = (metrics.extraction.readabilitySuccess || 0) + 1;
+    } else if (entry.extractionUsed === 'current' && (entry.extractionMethod === 'auto' || entry.extractionMethod === 'readability')) {
+      metrics.extraction.readabilityFallback = (metrics.extraction.readabilityFallback || 0) + 1;
+    }
+  }
+  if (entry.wasTruncated) {
+    metrics.extraction.truncatedCount = (metrics.extraction.truncatedCount || 0) + 1;
+  }
+  if (entry.provider) {
+    metrics.provider[entry.provider] = (metrics.provider[entry.provider] || 0) + 1;
+  }
+  if (entry.model) {
+    metrics.model[entry.model] = (metrics.model[entry.model] || 0) + 1;
+  }
+  if (entry.error === 'api') {
+    metrics.errors.apiError = (metrics.errors.apiError || 0) + 1;
+  } else if (entry.error === 'extraction') {
+    metrics.errors.extractionError = (metrics.errors.extractionError || 0) + 1;
+  }
+
+  metrics.daily[today] = (metrics.daily[today] || 0) + 1;
+
+  // Prune daily entries older than 30 days
+  const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  for (const key of Object.keys(metrics.daily)) {
+    if (key < cutoff) delete metrics.daily[key];
+  }
+
+  await browser.storage.local.set({ metrics });
+}
+
 // 1. Create Context Menu Items on install and startup
 function createContextMenu() {
   browser.contextMenus.create({
@@ -180,6 +250,8 @@ async function handleSummarizeRequest(tab, openInWindow, contextMenuSelection = 
     try {
       const pageContent = await browser.tabs.sendMessage(tab.id, { action: 'getContent' });
 
+      recordMetric({ type: 'summarize', extractionMethod: pageContent.extractionMethod, extractionUsed: pageContent.extractionUsed, wasTruncated: pageContent.wasTruncated, provider: data.provider, model: data.model });
+
       // Use context menu selection, then content script selection, then full page
       const selectedText = contextMenuSelection || pageContent.selectedText || null;
       const contentForAI = selectedText
@@ -213,6 +285,7 @@ async function handleSummarizeRequest(tab, openInWindow, contextMenuSelection = 
       });
     } catch (error) {
       console.error('Summarization error:', error);
+      recordMetric({ error: 'api' });
       // Send error to result window with retries
       await sendWithRetry(resultTabId, {
         action: 'displayError',
@@ -232,6 +305,8 @@ async function handleSummarizeRequest(tab, openInWindow, contextMenuSelection = 
     try {
       const pageContent = await browser.tabs.sendMessage(tab.id, { action: 'getContent' });
 
+      recordMetric({ type: 'summarize', extractionMethod: pageContent.extractionMethod, extractionUsed: pageContent.extractionUsed, wasTruncated: pageContent.wasTruncated, provider: data.provider, model: data.model });
+
       const selectedText = pageContent.selectedText || null;
       const contentForAI = selectedText
         ? { ...pageContent, text: selectedText }
@@ -243,6 +318,7 @@ async function handleSummarizeRequest(tab, openInWindow, contextMenuSelection = 
       return { summary, title: pageContent.title, url: pageContent.url, isSelectedText, wasTruncated };
     } catch (error) {
       console.error('Summarization error:', error);
+      recordMetric({ error: 'api' });
       throw error;
     }
   }
@@ -279,6 +355,8 @@ async function handleFactCheckRequest(tab, selectedText) {
       pageContent = await browser.tabs.sendMessage(tab.id, { action: 'getContent' });
     }
 
+    recordMetric({ type: 'factCheck', extractionMethod: pageContent.extractionMethod, extractionUsed: pageContent.extractionUsed, wasTruncated: pageContent.wasTruncated, provider: data.provider, model: data.model });
+
     const useStreaming = data.streaming !== false;
     if (useStreaming) {
       await sendWithRetry(resultTabId, {
@@ -301,6 +379,7 @@ async function handleFactCheckRequest(tab, selectedText) {
     });
   } catch (error) {
     console.error('Fact-check error:', error);
+    recordMetric({ error: 'api' });
     await sendWithRetry(resultTabId, {
       action: 'displayError',
       error: error.message
@@ -324,6 +403,7 @@ async function handleFactCheckPageFromPopup(tab) {
   }
 
   const pageContent = await browser.tabs.sendMessage(tab.id, { action: 'getContent' });
+  recordMetric({ type: 'factCheck', extractionMethod: pageContent.extractionMethod, extractionUsed: pageContent.extractionUsed, wasTruncated: pageContent.wasTruncated, provider: data.provider, model: data.model });
   const factCheck = await getFactCheckFromAI(data, pageContent);
   return { factCheck, title: pageContent.title, url: pageContent.url };
 }
@@ -359,6 +439,8 @@ async function handleCustomPrompt(prompt) {
   if (!hasApiKey(data)) {
     throw new Error('API key required. Please save your API key in Settings.');
   }
+
+  recordMetric({ type: 'customPrompt', provider: data.provider, model: data.model });
 
   return await getSummaryFromAI(data, null, prompt);
 }
@@ -511,6 +593,8 @@ async function getFollowUpFromAI({ question, pageContent, summary, conversationH
   if (!hasApiKey(data)) {
     throw new Error('API key required. Please save your API key in Settings.');
   }
+
+  recordMetric({ type: 'followUp', provider: data.provider, model: data.model });
 
   const articleSnippet = (pageContent.text || '').substring(0, 10000);
   const lang = data.language || 'english';

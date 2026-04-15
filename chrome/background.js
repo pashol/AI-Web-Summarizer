@@ -21,6 +21,82 @@ const MODELS = {
   ]
 };
 
+// Default metrics structure
+const DEFAULT_METRICS = {
+  enabled: true,
+  firstUsed: null,
+  lastUsed: null,
+  counts: { summarize: 0, factCheck: 0, customPrompt: 0, followUp: 0 },
+  extraction: { auto: 0, readability: 0, current: 0, readabilitySuccess: 0, readabilityFallback: 0, truncatedCount: 0 },
+  provider: { openrouter: 0, openai: 0 },
+  model: {},
+  errors: { apiError: 0, extractionError: 0 },
+  daily: {}
+};
+
+function recordMetric(entry) {
+  chrome.storage.local.get(['metrics'], (data) => {
+    const metrics = data.metrics || { ...DEFAULT_METRICS };
+    if (!metrics.enabled) return;
+    if (!metrics.counts) metrics.counts = { ...DEFAULT_METRICS.counts };
+    if (!metrics.extraction) metrics.extraction = { ...DEFAULT_METRICS.extraction };
+    if (!metrics.provider) metrics.provider = { ...DEFAULT_METRICS.provider };
+    if (!metrics.model) metrics.model = {};
+    if (!metrics.errors) metrics.errors = { ...DEFAULT_METRICS.errors };
+    if (!metrics.daily) metrics.daily = {};
+
+    const now = new Date().toISOString();
+    const today = now.slice(0, 10);
+
+    if (!metrics.firstUsed) metrics.firstUsed = now;
+    metrics.lastUsed = now;
+
+    if (entry.type === 'summarize') {
+      metrics.counts.summarize++;
+    } else if (entry.type === 'factCheck') {
+      metrics.counts.factCheck++;
+    } else if (entry.type === 'customPrompt') {
+      metrics.counts.customPrompt++;
+    } else if (entry.type === 'followUp') {
+      metrics.counts.followUp++;
+    }
+
+    if (entry.extractionMethod !== undefined) {
+      metrics.extraction[entry.extractionMethod] = (metrics.extraction[entry.extractionMethod] || 0) + 1;
+    }
+    if (entry.extractionUsed) {
+      if (entry.extractionUsed === 'readability') {
+        metrics.extraction.readabilitySuccess = (metrics.extraction.readabilitySuccess || 0) + 1;
+      } else if (entry.extractionUsed === 'current' && (entry.extractionMethod === 'auto' || entry.extractionMethod === 'readability')) {
+        metrics.extraction.readabilityFallback = (metrics.extraction.readabilityFallback || 0) + 1;
+      }
+    }
+    if (entry.wasTruncated) {
+      metrics.extraction.truncatedCount = (metrics.extraction.truncatedCount || 0) + 1;
+    }
+    if (entry.provider) {
+      metrics.provider[entry.provider] = (metrics.provider[entry.provider] || 0) + 1;
+    }
+    if (entry.model) {
+      metrics.model[entry.model] = (metrics.model[entry.model] || 0) + 1;
+    }
+    if (entry.error === 'api') {
+      metrics.errors.apiError = (metrics.errors.apiError || 0) + 1;
+    } else if (entry.error === 'extraction') {
+      metrics.errors.extractionError = (metrics.errors.extractionError || 0) + 1;
+    }
+
+    metrics.daily[today] = (metrics.daily[today] || 0) + 1;
+
+    const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    for (const key of Object.keys(metrics.daily)) {
+      if (key < cutoff) delete metrics.daily[key];
+    }
+
+    chrome.storage.local.set({ metrics });
+  });
+}
+
 // Create Context Menu Items on install and startup
 function createContextMenu() {
   chrome.contextMenus.create({
@@ -174,12 +250,9 @@ async function handleSummarizeRequest(tab, openInWindow, contextMenuSelection = 
 
     // Fetch content and summary in background
     try {
-      const [result] = await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        func: extractPageContent
-      });
+      const pageContent = await chrome.tabs.sendMessage(tab.id, { action: 'getContent' });
 
-      const pageContent = result.result;
+      recordMetric({ type: 'summarize', extractionMethod: pageContent.extractionMethod, extractionUsed: pageContent.extractionUsed, wasTruncated: pageContent.wasTruncated, provider: data.provider, model: data.model });
 
       // Use context menu selection, then content script selection, then full page
       const selectedText = contextMenuSelection || pageContent.selectedText || null;
@@ -214,6 +287,7 @@ async function handleSummarizeRequest(tab, openInWindow, contextMenuSelection = 
       });
     } catch (error) {
       console.error('Summarization error:', error);
+      recordMetric({ error: 'api' });
       // Send error to result window with retries
       await sendWithRetry(resultTabId, {
         action: 'displayError',
@@ -231,12 +305,9 @@ async function handleSummarizeRequest(tab, openInWindow, contextMenuSelection = 
   } else {
     // Popup mode: return result directly
     try {
-      const [result] = await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        func: extractPageContent
-      });
+      const pageContent = await chrome.tabs.sendMessage(tab.id, { action: 'getContent' });
 
-      const pageContent = result.result;
+      recordMetric({ type: 'summarize', extractionMethod: pageContent.extractionMethod, extractionUsed: pageContent.extractionUsed, wasTruncated: pageContent.wasTruncated, provider: data.provider, model: data.model });
 
       const selectedText = pageContent.selectedText || null;
       const contentForAI = selectedText
@@ -249,6 +320,7 @@ async function handleSummarizeRequest(tab, openInWindow, contextMenuSelection = 
       return { summary, title: pageContent.title, url: pageContent.url, isSelectedText, wasTruncated };
     } catch (error) {
       console.error('Summarization error:', error);
+      recordMetric({ error: 'api' });
       throw error;
     }
   }
@@ -282,12 +354,10 @@ async function handleFactCheckRequest(tab, selectedText) {
     if (selectedText) {
       pageContent = { title: tab.title || 'Selected Text', url: tab.url || '', text: selectedText };
     } else {
-      const [result] = await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        func: extractPageContent
-      });
-      pageContent = result.result;
+      pageContent = await chrome.tabs.sendMessage(tab.id, { action: 'getContent' });
     }
+
+    recordMetric({ type: 'factCheck', extractionMethod: pageContent.extractionMethod, extractionUsed: pageContent.extractionUsed, wasTruncated: pageContent.wasTruncated, provider: data.provider, model: data.model });
 
     const useStreaming = data.streaming !== false;
     if (useStreaming) {
@@ -311,6 +381,7 @@ async function handleFactCheckRequest(tab, selectedText) {
     });
   } catch (error) {
     console.error('Fact-check error:', error);
+    recordMetric({ error: 'api' });
     await sendWithRetry(resultTabId, {
       action: 'displayError',
       error: error.message
@@ -333,11 +404,8 @@ async function handleFactCheckPageFromPopup(tab) {
     throw new Error('API key required. Please save your API key in Settings.');
   }
 
-  const [result] = await chrome.scripting.executeScript({
-    target: { tabId: tab.id },
-    func: extractPageContent
-  });
-  const pageContent = result.result;
+  const pageContent = await chrome.tabs.sendMessage(tab.id, { action: 'getContent' });
+  recordMetric({ type: 'factCheck', extractionMethod: pageContent.extractionMethod, extractionUsed: pageContent.extractionUsed, wasTruncated: pageContent.wasTruncated, provider: data.provider, model: data.model });
   const factCheck = await getFactCheckFromAI(data, pageContent);
   return { factCheck, title: pageContent.title, url: pageContent.url };
 }
@@ -366,55 +434,6 @@ async function sendPendingResult(tabId) {
   // This function exists for future use if needed
 }
 
-// Function to inject into page for content extraction
-function extractPageContent() {
-  const selectedText = window.getSelection().toString().trim();
-
-  const preferred = document.querySelector('article')
-    || document.querySelector('main')
-    || document.querySelector('[role="main"]')
-    || document.querySelector('.post-content, .entry-content, .article-content')
-    || document.querySelector('.post-body, .article-body, .story-body')
-    || document.querySelector('#content, .content');
-  const clone = (preferred || document.body).cloneNode(true);
-
-  const unwantedSelectors = [
-    'script', 'style', 'nav', 'header', 'footer',
-    'aside', 'iframe', 'noscript', '[role="navigation"]',
-    '[role="banner"]', '[role="complementary"]', '.ad',
-    '.advertisement', '.sidebar', '.menu',
-    '[aria-hidden="true"]', '[hidden]', '.hidden',
-    '.visually-hidden', '.sr-only',
-    'button', 'form', '[class*="cookie"]', '[class*="subscribe"]',
-    '[class*="share"]', '[class*="social"]'
-  ];
-
-  unwantedSelectors.forEach(selector => {
-    clone.querySelectorAll(selector).forEach(el => el.remove());
-  });
-
-  let text = clone.innerText || clone.textContent;
-  text = text.replace(/\s+/g, ' ').trim();
-
-  const lines = text.split(/[.!?\n]+/).map(s => s.trim()).filter(Boolean);
-  const seen = new Set();
-  const unique = [];
-  for (const line of lines) {
-    if (!seen.has(line)) {
-      seen.add(line);
-      unique.push(line);
-    }
-  }
-  text = unique.join(' ');
-
-  return {
-    title: document.title,
-    url: window.location.href,
-    text: text.substring(0, 12000),
-    selectedText: selectedText || null
-  };
-}
-
 // Handle custom prompts
 async function handleCustomPrompt(prompt) {
   const data = await chrome.storage.local.get(['apiKeys', 'apiKey', 'provider', 'model']);
@@ -422,6 +441,8 @@ async function handleCustomPrompt(prompt) {
   if (!hasApiKey(data)) {
     throw new Error('API key required. Please save your API key in Settings.');
   }
+
+  recordMetric({ type: 'customPrompt', provider: data.provider, model: data.model });
 
   return await getSummaryFromAI(data, null, prompt);
 }
@@ -574,6 +595,8 @@ async function getFollowUpFromAI({ question, pageContent, summary, conversationH
   if (!hasApiKey(data)) {
     throw new Error('API key required. Please save your API key in Settings.');
   }
+
+  recordMetric({ type: 'followUp', provider: data.provider, model: data.model });
 
   const articleSnippet = (pageContent.text || '').substring(0, 10000);
   const lang = data.language || 'english';

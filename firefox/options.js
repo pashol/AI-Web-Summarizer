@@ -182,10 +182,119 @@ document.getElementById('themeControl').addEventListener('click', (e) => {
   }
 });
 
+const extractionHints = {
+  auto: 'Uses Readability for articles, falls back to standard extraction for other pages.',
+  readability: 'Always uses Mozilla Readability parser, falls back if it produces no content.',
+  current: 'Uses the built-in DOM-based extraction (no Readability).'
+};
+
+function updateExtractionUI(mode) {
+  document.querySelectorAll('.extraction-option').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.value === mode);
+  });
+  const hint = document.getElementById('extractionHint');
+  if (hint) hint.textContent = extractionHints[mode] || extractionHints.auto;
+}
+
+document.getElementById('extractionControl').addEventListener('click', (e) => {
+  if (e.target.classList.contains('extraction-option')) {
+    const mode = e.target.dataset.value;
+    updateExtractionUI(mode);
+  }
+});
+
+document.getElementById('metricsToggle').addEventListener('click', () => {
+  const content = document.getElementById('metricsContent');
+  const arrow = document.getElementById('metricsArrow');
+  content.classList.toggle('visible');
+  arrow.classList.toggle('expanded');
+});
+
+document.getElementById('metricsEnabled').addEventListener('change', async (e) => {
+  const data = await browser.storage.local.get(['metrics']);
+  const metrics = data.metrics || {};
+  metrics.enabled = e.target.checked;
+  await browser.storage.local.set({ metrics });
+  const statsEl = document.getElementById('metricsStats');
+  statsEl.style.display = e.target.checked ? '' : 'none';
+});
+
+document.getElementById('resetMetricsBtn').addEventListener('click', async () => {
+  const DEFAULT_METRICS = {
+    enabled: true, firstUsed: null, lastUsed: null,
+    counts: { summarize: 0, factCheck: 0, customPrompt: 0, followUp: 0 },
+    extraction: { auto: 0, readability: 0, current: 0, readabilitySuccess: 0, readabilityFallback: 0, truncatedCount: 0 },
+    provider: { openrouter: 0, openai: 0 },
+    model: {},
+    errors: { apiError: 0, extractionError: 0 },
+    daily: {}
+  };
+  DEFAULT_METRICS.enabled = document.getElementById('metricsEnabled').checked;
+  await browser.storage.local.set({ metrics: DEFAULT_METRICS });
+  renderMetrics(DEFAULT_METRICS);
+});
+
+function renderMetrics(metrics) {
+  const counts = metrics.counts || {};
+  const extraction = metrics.extraction || {};
+  const provider = metrics.provider || {};
+  const model = metrics.model || {};
+  const errors = metrics.errors || {};
+
+  document.getElementById('metricSummarize').textContent = counts.summarize || 0;
+  document.getElementById('metricFactCheck').textContent = counts.factCheck || 0;
+  document.getElementById('metricCustomPrompt').textContent = counts.customPrompt || 0;
+  document.getElementById('metricFollowUp').textContent = counts.followUp || 0;
+
+  document.getElementById('metricExtractionAuto').textContent = extraction.auto || 0;
+  document.getElementById('metricExtractionReadability').textContent = extraction.readability || 0;
+  document.getElementById('metricExtractionCurrent').textContent = extraction.current || 0;
+  document.getElementById('metricReadabilitySuccess').textContent = extraction.readabilitySuccess || 0;
+  document.getElementById('metricReadabilityFallback').textContent = extraction.readabilityFallback || 0;
+  document.getElementById('metricTruncated').textContent = extraction.truncatedCount || 0;
+
+  document.getElementById('metricProviderOpenrouter').textContent = provider.openrouter || 0;
+  document.getElementById('metricProviderOpenai').textContent = provider.openai || 0;
+
+  const modelEntries = Object.entries(model);
+  document.getElementById('metricModels').textContent = modelEntries.length > 0
+    ? modelEntries.map(([k, v]) => `${k} (${v})`).join(', ')
+    : '-';
+
+  document.getElementById('metricApiErrors').textContent = errors.apiError || 0;
+  document.getElementById('metricExtractionErrors').textContent = errors.extractionError || 0;
+
+  document.getElementById('metricFirstUsed').textContent = metrics.firstUsed
+    ? new Date(metrics.firstUsed).toLocaleDateString()
+    : '-';
+  document.getElementById('metricLastUsed').textContent = metrics.lastUsed
+    ? new Date(metrics.lastUsed).toLocaleDateString()
+    : '-';
+}
+
+async function loadMetrics() {
+  const data = await browser.storage.local.get(['metrics']);
+  const metrics = data.metrics || {
+    enabled: true, firstUsed: null, lastUsed: null,
+    counts: { summarize: 0, factCheck: 0, customPrompt: 0, followUp: 0 },
+    extraction: { auto: 0, readability: 0, current: 0, readabilitySuccess: 0, readabilityFallback: 0, truncatedCount: 0 },
+    provider: { openrouter: 0, openai: 0 },
+    model: {},
+    errors: { apiError: 0, extractionError: 0 },
+    daily: {}
+  };
+
+  document.getElementById('metricsEnabled').checked = metrics.enabled !== false;
+  const statsEl = document.getElementById('metricsStats');
+  statsEl.style.display = metrics.enabled !== false ? '' : 'none';
+
+  renderMetrics(metrics);
+}
+
 async function loadSettings() {
   const data = await browser.storage.local.get([
     'provider', 'apiKeys', 'model', 'language',
-    'ttsRate', 'ttsPitch', 'ttsVoice', 'streaming', 'theme'
+    'ttsRate', 'ttsPitch', 'ttsVoice', 'streaming', 'theme', 'extractionMode'
   ]);
 
   const provider = data.provider || 'openrouter';
@@ -207,9 +316,13 @@ async function loadSettings() {
 
   document.getElementById('streaming').checked = data.streaming !== false;
 
+  const extractionMode = data.extractionMode || 'auto';
+  updateExtractionUI(extractionMode);
+
   updateModelOptions(data.model);
   populateVoiceDropdown(data.ttsVoice);
   updateProviderHint();
+  loadMetrics();
 }
 
 document.getElementById('saveBtn').addEventListener('click', async () => {
@@ -222,10 +335,11 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
   const ttsVoice = document.getElementById('ttsVoice').value;
   const streaming = document.getElementById('streaming').checked;
   const theme = document.querySelector('.theme-option.active').dataset.value;
+  const extractionMode = document.querySelector('.extraction-option.active').dataset.value;
 
   currentApiKeys[provider] = apiKey;
 
-  await browser.storage.local.set({ provider, apiKeys: currentApiKeys, model, language, ttsRate, ttsPitch, ttsVoice, streaming, theme });
+  await browser.storage.local.set({ provider, apiKeys: currentApiKeys, model, language, ttsRate, ttsPitch, ttsVoice, streaming, theme, extractionMode });
 
   const msg = document.getElementById('statusMsg');
   msg.className = 'status-msg success';

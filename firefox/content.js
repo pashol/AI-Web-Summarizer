@@ -1,22 +1,38 @@
-// Content script to extract page content
 browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'getContent') {
-    const selectedText = window.getSelection().toString().trim();
+    browser.storage.local.get(['extractionMode']).then(data => {
+      const mode = data.extractionMode || 'auto';
+      const selectedText = window.getSelection().toString().trim();
 
-    const fullText = extractMainContent();
-    const wasTruncated = fullText.length > 12000;
-    const pageContent = {
-      title: document.title,
-      url: window.location.href,
-      text: fullText.substring(0, 12000),
-      selectedText: selectedText || null,
-      wasTruncated
-    };
+      const { text: fullText, method: extractionUsed } = extractMainContent(mode);
+      const wasTruncated = fullText.length > 12000;
+      const pageContent = {
+        title: document.title,
+        url: window.location.href,
+        text: fullText.substring(0, 12000),
+        selectedText: selectedText || null,
+        wasTruncated,
+        extractionMethod: mode,
+        extractionUsed
+      };
 
-    sendResponse(pageContent);
+      sendResponse(pageContent);
+    });
+    return true;
   }
-  return true;
 });
+
+function extractWithReadability() {
+  try {
+    const doc = document.cloneNode(true);
+    const reader = new Readability(doc);
+    const article = reader.parse();
+    if (article && article.textContent && article.textContent.trim().length > 200) {
+      return article.textContent.replace(/\s+/g, ' ').trim();
+    }
+  } catch (e) {}
+  return null;
+}
 
 function getBestArticle() {
   const articles = Array.from(document.querySelectorAll('article'));
@@ -24,7 +40,6 @@ function getBestArticle() {
   const best = articles.reduce((a, b) =>
     b.textContent.length > a.textContent.length ? b : a
   );
-  // Ignore teaser-sized article elements; fall through to other selectors
   return best.textContent.length > 300 ? best : null;
 }
 
@@ -46,12 +61,10 @@ function extractFromJsonLd() {
   return null;
 }
 
-function extractMainContent() {
-  // Try JSON-LD structured data first — cleanest source when available
+function extractMainContentLegacy() {
   const jsonLdText = extractFromJsonLd();
   if (jsonLdText) return jsonLdText;
 
-  // Prioritize semantic content elements, then common CMS content classes
   const preferred = document.querySelector('[itemprop="articleBody"]')
     || document.querySelector('[role="article"]')
     || getBestArticle()
@@ -66,15 +79,12 @@ function extractMainContent() {
     || document.querySelector('#content, .content');
   const clone = (preferred || document.body).cloneNode(true);
 
-  // Remove non-content elements
   const unwantedSelectors = [
     'script', 'style', 'nav', 'header', 'footer',
     'aside', 'iframe', 'noscript', '[role="navigation"]',
     '[role="banner"]', '[role="complementary"]', '.ad',
     '.advertisement', '.sidebar', '.menu',
-    // Hidden/invisible elements (aria-hidden omitted: paywall sites use it on article containers)
     '[hidden]', '.hidden', '.visually-hidden', '.sr-only',
-    // Common boilerplate
     'button', 'form', '[class*="cookie"]', '[class*="subscribe"]',
     '[class*="share"]', '[class*="social"]'
   ];
@@ -83,13 +93,9 @@ function extractMainContent() {
     clone.querySelectorAll(selector).forEach(el => el.remove());
   });
 
-  // Get text content
   let text = clone.innerText || clone.textContent;
-
-  // Clean up whitespace
   text = text.replace(/\s+/g, ' ').trim();
 
-  // If cleaned text is too short, retry with full body before deduplicating
   if (text.length < 500 && preferred !== null) {
     const bodyClone = document.body.cloneNode(true);
     unwantedSelectors.forEach(selector => {
@@ -101,9 +107,6 @@ function extractMainContent() {
     }
   }
 
-  // Deduplicate repeated lines (navigation boilerplate, repeated labels)
-  // Split ONLY on newlines — never on sentence punctuation, which destroys
-  // abbreviations (Dr., U.S., Fig.) and decimal numbers.
   const lines = text.split(/\n+/).map(s => s.trim()).filter(Boolean);
   const seen = new Set();
   const unique = [];
@@ -116,4 +119,14 @@ function extractMainContent() {
   text = unique.join(' ');
 
   return text;
+}
+
+function extractMainContent(mode) {
+  if (mode === 'readability' || mode === 'auto') {
+    const readabilityResult = extractWithReadability();
+    if (readabilityResult) {
+      return { text: readabilityResult, method: 'readability' };
+    }
+  }
+  return { text: extractMainContentLegacy(), method: 'current' };
 }

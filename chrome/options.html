@@ -281,6 +281,92 @@
     .link-row a:hover {
       text-decoration: underline;
     }
+    .extraction-segmented-control {
+      display: flex;
+      background: var(--color-border);
+      border-radius: var(--radius);
+      padding: 4px;
+      gap: 4px;
+      margin-bottom: 4px;
+    }
+    .extraction-option {
+      flex: 1;
+      height: 36px;
+      border: none;
+      background: transparent;
+      color: var(--color-text-muted);
+      font-size: 13px;
+      font-weight: 500;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background var(--transition), color var(--transition);
+    }
+    .extraction-option:hover {
+      color: var(--color-text);
+    }
+    .extraction-option.active {
+      background: var(--color-surface);
+      color: var(--color-text);
+      box-shadow: var(--shadow-sm);
+    }
+    .metrics-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+    }
+    .metrics-toggle h2 {
+      margin: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+    .metrics-toggle-arrow {
+      font-size: 12px;
+      transition: transform var(--transition);
+      color: var(--color-text-muted);
+    }
+    .metrics-toggle-arrow.expanded {
+      transform: rotate(180deg);
+    }
+    .metrics-content {
+      display: none;
+      padding-top: 16px;
+    }
+    .metrics-content.visible {
+      display: block;
+    }
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px 24px;
+      margin-bottom: 16px;
+    }
+    .metrics-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--color-border);
+      font-size: 13px;
+    }
+    .metrics-item:last-child {
+      border-bottom: none;
+    }
+    .metrics-label {
+      color: var(--color-text-muted);
+    }
+    .metrics-value {
+      font-weight: 600;
+      color: var(--color-text);
+    }
+    .metrics-full-width {
+      grid-column: 1 / -1;
+    }
+    .metrics-disabled-msg {
+      font-size: 13px;
+      color: var(--color-text-muted);
+      padding: 8px 0;
+    }
     .theme-segmented-control {
       display: flex;
       background: var(--color-border);
@@ -368,6 +454,20 @@
     </div>
 
     <div class="section">
+      <h2>Content Extraction</h2>
+
+      <label>Extraction Mode:</label>
+      <div class="extraction-segmented-control" id="extractionControl">
+        <button type="button" class="extraction-option active" data-value="auto">Auto</button>
+        <button type="button" class="extraction-option" data-value="readability">Readability</button>
+        <button type="button" class="extraction-option" data-value="current">Current</button>
+      </div>
+      <div class="hint" id="extractionHint">
+        Uses Readability for articles, falls back to standard extraction for other pages.
+      </div>
+    </div>
+
+    <div class="section">
       <h2>Voice &amp; Text-to-Speech</h2>
 
       <label>Voice:</label>
@@ -421,6 +521,68 @@
       </p>
       <div class="hint" style="margin-top:0;">
         You can change these in your browser's keyboard shortcut settings for extensions.
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="metrics-toggle" id="metricsToggle">
+        <h2>Usage Statistics</h2>
+        <span class="metrics-toggle-arrow" id="metricsArrow">&#9660;</span>
+      </div>
+      <div class="metrics-content" id="metricsContent">
+        <label style="display:flex;align-items:center;gap:10px;margin-bottom:16px;cursor:pointer;">
+          <input type="checkbox" id="metricsEnabled" style="width:auto;margin:0;">
+          <span>Enable metrics collection</span>
+        </label>
+        <div class="hint" style="margin-top:0;margin-bottom:16px;">
+          All data is stored locally and never sent anywhere. You can reset or disable it at any time.
+        </div>
+        <div id="metricsStats">
+          <div class="metrics-grid">
+            <div class="metrics-item metrics-full-width" style="border-bottom:1px solid var(--color-border);padding-bottom:8px;margin-bottom:4px;">
+              <span style="font-weight:600;">Actions</span>
+              <span></span>
+            </div>
+            <div class="metrics-item"><span class="metrics-label">Summarizations</span><span class="metrics-value" id="metricSummarize">0</span></div>
+            <div class="metrics-item"><span class="metrics-label">Fact checks</span><span class="metrics-value" id="metricFactCheck">0</span></div>
+            <div class="metrics-item"><span class="metrics-label">Custom prompts</span><span class="metrics-value" id="metricCustomPrompt">0</span></div>
+            <div class="metrics-item"><span class="metrics-label">Follow-up questions</span><span class="metrics-value" id="metricFollowUp">0</span></div>
+
+            <div class="metrics-item metrics-full-width" style="border-bottom:1px solid var(--color-border);padding-bottom:8px;margin-top:12px;margin-bottom:4px;">
+              <span style="font-weight:600;">Extraction</span>
+              <span></span>
+            </div>
+            <div class="metrics-item"><span class="metrics-label">Auto mode</span><span class="metrics-value" id="metricExtractionAuto">0</span></div>
+            <div class="metrics-item"><span class="metrics-label">Readability</span><span class="metrics-value" id="metricExtractionReadability">0</span></div>
+            <div class="metrics-item"><span class="metrics-label">Current mode</span><span class="metrics-value" id="metricExtractionCurrent">0</span></div>
+            <div class="metrics-item"><span class="metrics-label">Readability success</span><span class="metrics-value" id="metricReadabilitySuccess">0</span></div>
+            <div class="metrics-item"><span class="metrics-label">Readability fallback</span><span class="metrics-value" id="metricReadabilityFallback">0</span></div>
+            <div class="metrics-item"><span class="metrics-label">Content truncated</span><span class="metrics-value" id="metricTruncated">0</span></div>
+
+            <div class="metrics-item metrics-full-width" style="border-bottom:1px solid var(--color-border);padding-bottom:8px;margin-top:12px;margin-bottom:4px;">
+              <span style="font-weight:600;">Provider & Model</span>
+              <span></span>
+            </div>
+            <div class="metrics-item"><span class="metrics-label">OpenRouter calls</span><span class="metrics-value" id="metricProviderOpenrouter">0</span></div>
+            <div class="metrics-item"><span class="metrics-label">OpenAI calls</span><span class="metrics-value" id="metricProviderOpenai">0</span></div>
+            <div class="metrics-item metrics-full-width"><span class="metrics-label">Models used</span><span class="metrics-value" id="metricModels">-</span></div>
+
+            <div class="metrics-item metrics-full-width" style="border-bottom:1px solid var(--color-border);padding-bottom:8px;margin-top:12px;margin-bottom:4px;">
+              <span style="font-weight:600;">Errors</span>
+              <span></span>
+            </div>
+            <div class="metrics-item"><span class="metrics-label">API errors</span><span class="metrics-value" id="metricApiErrors">0</span></div>
+            <div class="metrics-item"><span class="metrics-label">Extraction errors</span><span class="metrics-value" id="metricExtractionErrors">0</span></div>
+
+            <div class="metrics-item metrics-full-width" style="border-bottom:1px solid var(--color-border);padding-bottom:8px;margin-top:12px;margin-bottom:4px;">
+              <span style="font-weight:600;">Timeline</span>
+              <span></span>
+            </div>
+            <div class="metrics-item"><span class="metrics-label">First used</span><span class="metrics-value" id="metricFirstUsed">-</span></div>
+            <div class="metrics-item"><span class="metrics-label">Last used</span><span class="metrics-value" id="metricLastUsed">-</span></div>
+          </div>
+        </div>
+        <button class="btn-secondary" id="resetMetricsBtn" style="margin-top:8px;">Reset Statistics</button>
       </div>
     </div>
 
