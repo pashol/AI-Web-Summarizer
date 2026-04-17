@@ -547,5 +547,5 @@ For full details, see [Privacy Policy](privacy-policy.md).
 
 ---
 
-**Version**: Firefox 2.1.0 | Chrome 2.1.0  
+**Version**: Firefox 2.1.1 | Chrome 2.1.1  
 **Last Updated**: April 15, 2026

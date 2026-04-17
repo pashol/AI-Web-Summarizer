@@ -207,6 +207,10 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
+function maxTokensParam(model, count) {
+  return /^o\d|gpt-5/i.test(model) ? { max_completion_tokens: count } : { max_tokens: count };
+}
+
 function getApiKey(data) {
   if (data.apiKeys && data.apiKeys[data.provider]) return data.apiKeys[data.provider];
   if (data.apiKey) return data.apiKey;
@@ -483,10 +487,11 @@ function buildApiRequest(settings, pageContent, customPrompt, isSelectedText = f
     headers['X-Title'] = 'AI Web Summarizer';
   }
 
+  const resolvedModel = settings.model || defaultModel;
   const body = {
-    model: settings.model || defaultModel,
+    model: resolvedModel,
     messages: messages,
-    max_tokens: customPrompt ? 1000 : 500,
+    ...maxTokensParam(resolvedModel, customPrompt ? 1000 : 500),
     stream: true
   };
 
@@ -650,14 +655,11 @@ Answer follow-up questions based on the article above. Be concise and accurate. 
     headers['X-Title'] = 'AI Web Summarizer';
   }
 
+  const resolvedModel = data.model || defaultModel;
   const response = await fetch(apiUrl, {
     method: 'POST',
     headers: headers,
-    body: JSON.stringify({
-      model: data.model || defaultModel,
-      messages: messages,
-      max_tokens: 800
-    })
+    body: JSON.stringify({ model: resolvedModel, messages, ...maxTokensParam(resolvedModel, 800) })
   });
 
   const resData = await response.json();
@@ -718,10 +720,11 @@ ${pageContent.text.substring(0, 10000)}`;
     headers['X-Title'] = 'AI Web Summarizer';
   }
 
+  const resolvedModel = settings.model || defaultModel;
   const body = {
-    model: settings.model || defaultModel,
+    model: resolvedModel,
     messages: messages,
-    max_tokens: 1500,
+    ...maxTokensParam(resolvedModel, 1500),
     stream: !!streamTarget
   };
 

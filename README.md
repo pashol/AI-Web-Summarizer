@@ -10,7 +10,7 @@ A powerful browser extension that uses advanced AI models to instantly summarize
 
 ---
 
-## 📰 Latest Release: v2.1.0
+## 📰 Latest Release: v2.1.1
 
 ### ✨ What's New
 - **Readability extraction**: New content extraction modes — Auto (default), Readability (Mozilla parser), and Current (legacy DOM-based)
@@ -127,7 +127,7 @@ See [docs/help.md](docs/help.md) for detailed usage guide, TTS controls, and fea
 
 | | Firefox | Chrome |
 |---|---|---|
-| Version | 2.1.0 | 2.1.0 |
+| Version | 2.1.1 | 2.1.1 |
 | Manifest | V2 | V3 |
 | Background | Event-driven script | Service worker |
 | Content limit | 12,000 chars extracted, 10,000 sent to API | 12,000 chars extracted, 10,000 sent to API |
@@ -184,5 +184,5 @@ This project is open source. Feel free to use, modify, and distribute as you see
 
 ---
 
-**Version**: Firefox 2.1.0 | Chrome 2.1.0
+**Version**: Firefox 2.1.1 | Chrome 2.1.1
 **Last Updated**: April 15, 2026
