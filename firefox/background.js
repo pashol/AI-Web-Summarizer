@@ -6,12 +6,12 @@ const MODELS = {
   openrouter: [
     { id: 'openrouter/free', name: 'Auto (Best Free Model)' },
     { id: 'google/gemini-3-flash-preview', name: 'Gemini 3 Flash' },
-    { id: 'deepseek/deepseek-v3.2', name: 'DeepSeek V3.2' },
-    { id: 'anthropic/claude-haiku-4.5', name: 'Claude Haiku 4.5' },
-    { id: 'openai/gpt-5.4-mini', name: 'GPT-5.4 Mini' },
-    { id: 'mistralai/mistral-small-3.2-24b-instruct', name: 'Mistral Small 3.2' },
-    { id: 'anthropic/claude-sonnet-4.6', name: 'Claude Sonnet 4.6' },
-    { id: 'anthropic/claude-opus-4.6', name: 'Claude Opus 4.6' },
+    { id: 'deepseek/deepseek-v4-flash', name: 'DeepSeek V4 Flash' },
+    { id: '~anthropic/claude-haiku-latest', name: 'Claude Haiku (Latest)' },
+    { id: '~openai/gpt-mini-latest', name: 'GPT Mini (Latest)' },
+    { id: 'mistralai/mistral-small-2603', name: 'Mistral Small 4' },
+    { id: '~anthropic/claude-sonnet-latest', name: 'Claude Sonnet (Latest)' },
+    { id: '~anthropic/claude-opus-latest', name: 'Claude Opus (Latest)' },
   ],
   openai: [
     { id: 'gpt-5.4-nano', name: 'GPT-5.4 Nano' },
@@ -595,7 +595,7 @@ function buildApiRequest(settings, pageContent, customPrompt, isSelectedText = f
     ? 'https://api.openai.com/v1/chat/completions'
     : 'https://openrouter.ai/api/v1/chat/completions';
 
-  const defaultModel = settings.provider === 'openai' ? 'gpt-4o-mini' : 'openai/gpt-4o-mini';
+  const defaultModel = settings.provider === 'openai' ? 'gpt-5.4-mini' : '~openai/gpt-mini-latest';
 
   const messages = settings.provider === 'openai'
     ? [
@@ -727,7 +727,7 @@ async function getTranslationFromAI(settings, pageContent, isSelectedText = fals
     ? 'https://api.openai.com/v1/chat/completions'
     : 'https://openrouter.ai/api/v1/chat/completions';
 
-  const defaultModel = settings.provider === 'openai' ? 'gpt-4o-mini' : 'openai/gpt-4o-mini';
+  const defaultModel = settings.provider === 'openai' ? 'gpt-5.4-mini' : '~openai/gpt-mini-latest';
 
   const messages = settings.provider === 'openai'
     ? [
@@ -813,7 +813,7 @@ Answer follow-up questions based on the article above. Be concise and accurate. 
     ? 'https://api.openai.com/v1/chat/completions'
     : 'https://openrouter.ai/api/v1/chat/completions';
 
-  const defaultModel = data.provider === 'openai' ? 'gpt-4o-mini' : 'openai/gpt-4o-mini';
+  const defaultModel = data.provider === 'openai' ? 'gpt-5.4-mini' : '~openai/gpt-mini-latest';
 
   let messages;
   if (data.provider === 'openai') {
@@ -888,7 +888,7 @@ ${pageContent.text.substring(0, 10000)}`;
     ? 'https://api.openai.com/v1/chat/completions'
     : 'https://openrouter.ai/api/v1/chat/completions';
 
-  const defaultModel = settings.provider === 'openai' ? 'gpt-4o-mini' : 'openai/gpt-4o-mini';
+  const defaultModel = settings.provider === 'openai' ? 'gpt-5.4-mini' : '~openai/gpt-mini-latest';
 
   // OpenAI: role in system message, task in user message
   // OpenRouter: role + task combined in user message (no system message)
