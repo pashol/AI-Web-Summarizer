@@ -24,7 +24,7 @@ A comprehensive guide to getting the most out of AI Web Summarizer.
 
 ### What is AI Web Summarizer?
 
-AI Web Summarizer is a browser extension that uses artificial intelligence to summarize webpages, articles, and documents. Instead of reading entire articles, you can get a concise summary in seconds.
+AI Web Summarizer is a browser extension that uses artificial intelligence to summarize, translate, and fact-check webpages, articles, and documents. Instead of reading entire articles, you can get a concise summary or translation in seconds.
 
 ### What You Need Before Installing
 
@@ -83,7 +83,7 @@ On first use, the Settings panel opens automatically:
 1. **Select Provider** - Choose OpenAI or OpenRouter
 2. **Enter API Key** - Paste your key from the provider's website
 3. **Choose Model** - Select from available models for your provider
-4. **Set Language** - Choose the language for summaries and TTS
+4. **Set Language** - Choose the target language for summaries, translations, and TTS
 5. **Save Settings** - Click the save button
 
 ### Accessing Settings
@@ -98,7 +98,7 @@ On first use, the Settings panel opens automatically:
 | **Provider** | OpenAI (paid) or OpenRouter (includes free tier) |
 | **API Key** | Your personal key from the provider |
 | **Model** | AI model used for summarization |
-| **Language** | Language for summary output and TTS |
+| **Language** | Target language for summaries, translations, and TTS |
 | **TTS Voice** | Voice used for text-to-speech |
 | **TTS Speed** | Speech rate (0.5x to 2.0x) |
 | **TTS Pitch** | Voice pitch (0.5 to 2.0) |
@@ -115,28 +115,29 @@ On first use, the Settings panel opens automatically:
 
 1. Click the extension icon in your toolbar
 2. Adjust quick settings (provider, model, language) if needed
-3. Click **"Summarize This Page"**
+3. Click **"Summarize"**, **"Translate"**, or **"Fact Check"**
 4. View results in the popup or dedicated window
 
 ### Method 2: Context Menu
 
 1. Right-click anywhere on a webpage
-2. Select **"Summarize This Page with AI"**
-3. A dedicated window opens with the summary
+2. Select **"Summarize This Page with AI"** or **"Translate This"**
+3. A dedicated window opens with the result
 
 ### Method 3: Keyboard Shortcuts
 
 | Shortcut | Action |
 |----------|--------|
 | `Ctrl+Alt+S` | Summarize current page |
+| `Ctrl+Alt+T` | Translate current page |
 | `Ctrl+Alt+F` | Fact-check current page |
 
 ### Method 4: Text Selection
 
 1. Highlight any text on the page
 2. Click the extension icon
-3. Click **"Summarize Selected Text"**
-4. Get a focused summary of your selection
+3. Click **"Summarize"** or **"Translate"**
+4. Get a focused summary or translation of your selection
 
 ---
 
@@ -181,18 +182,27 @@ Change extraction mode in Settings → Content Extraction.
 Verify claims on any webpage:
 
 1. Click extension icon
-2. Click **"Fact-Check This Page"**
+2. Click **"Fact Check"**
 3. AI analyzes the content and provides factual assessment
 4. Useful for news articles, claims, statistics
+
+### Translation Mode
+
+Translate any webpage or selected text into your chosen language:
+
+1. Click extension icon
+2. Click **"Translate"**
+3. AI translates the page content and preserves meaning and tone
+4. Works with full pages or selected text
 
 ### Interactive Chat
 
 Ask custom questions about any webpage:
 
 1. Click extension icon
-2. Scroll to **"Ask AI about this page"**
+2. Scroll to **"Ask AI Anything"**
 3. Type your question
-4. Click **"Send"**
+4. Click **"Send"** or press `Ctrl+Enter`
 5. Receive AI response based on page content
 
 ### Follow-Up Questions
@@ -207,7 +217,7 @@ After receiving a summary, ask follow-up questions:
 
 The extension tracks local usage metrics to help you understand your usage:
 
-- **Actions**: Summarizations, fact checks, custom prompts, follow-up questions
+- **Actions**: Summarizations, translations, fact checks, custom prompts, follow-up questions
 - **Extraction**: Which extraction mode is used and how often Readability succeeds or falls back
 - **Provider & Model**: Breakdown of API calls by provider (OpenAI/OpenRouter) and model
 - **Errors**: API and extraction error counts
@@ -228,10 +238,10 @@ Enable/disable in Settings → Streaming.
 
 ## Keyboard Shortcuts
 
-| Browser | Summarize | Fact-Check |
-|---------|-----------|------------|
-| Firefox | `Ctrl+Alt+S` | `Ctrl+Alt+F` |
-| Chrome | `Ctrl+Shift+S` | `Ctrl+Shift+F` |
+| Browser | Summarize | Translate | Fact-Check |
+|---------|-----------|-----------|------------|
+| Firefox | `Ctrl+Alt+S` | `Ctrl+Alt+T` | `Ctrl+Alt+F` |
+| Chrome | `Ctrl+Shift+S` | `Ctrl+Shift+T` | `Ctrl+Shift+F` |
 
 ### Customizing Shortcuts
 
@@ -284,7 +294,7 @@ Adjust the voice pitch:
 
 ### Language-Aware Selection
 
-When you change the summary language, TTS automatically:
+When you change the target language, TTS automatically:
 - Filters voices to those supporting the language
 - Selects an appropriate voice by default
 - Falls back to default voice if no matching voice found
@@ -451,10 +461,13 @@ A: Yes. Your IP address is only used for API communication with your chosen prov
 A: Up to 12,000 characters extracted, 10,000 sent to API per request.
 
 **Q: Can I summarize selected text only?**
-A: Yes! Highlight text on the page, click extension icon, and select "Summarize Selected Text."
+A: Yes! Highlight text on the page, click the extension icon, and click **"Summarize"**. The AI will summarize only your selection.
 
 **Q: How do I change the language?**
-A: Open popup → Language dropdown → Select language. This affects both summaries and TTS.
+A: Open popup → Language dropdown → Select language. This affects summaries, translations, and TTS.
+
+**Q: Can I translate selected text only?**
+A: Yes! Highlight text on the page, click the extension icon, and click **"Translate"**. The AI will translate only your selection.
 
 ### Billing
 
@@ -470,11 +483,11 @@ A: API costs are determined by your provider (OpenAI or OpenRouter), not this ex
 
 ### Data Flow
 
-1. You click "Summarize"
+1. You click "Summarize", "Translate", or "Fact Check"
 2. Extension extracts text content from webpage
 3. Content is sent directly to your chosen AI provider
-4. AI processes content and returns summary
-5. Summary is displayed in extension UI
+4. AI processes content and returns the result
+5. Result is displayed in extension UI
 
 ### What We Don't Collect
 
@@ -529,7 +542,7 @@ For full details, see [Privacy Policy](privacy-policy.md).
 ### Getting Better Summaries
 
 1. **Original Language**: Summarize in the page's original language for better accuracy
-2. **Select Key Sections**: For long articles, summarize key sections separately
+2. **Select Key Sections**: For long articles, summarize or translate key sections separately
 3. **Choose Right Model**: GPT-4o/Claude for quality, GPT-4o Mini/DeepSeek for cost
 4. **Specific Questions**: Use "Ask AI" feature for targeted information
 
@@ -547,5 +560,5 @@ For full details, see [Privacy Policy](privacy-policy.md).
 
 ---
 
-**Version**: Firefox 2.1.1 | Chrome 2.1.1  
-**Last Updated**: April 15, 2026
+**Version**: Firefox 2.2.0 | Chrome 2.2.0  
+**Last Updated**: June 27, 2026
