@@ -1,6 +1,6 @@
 # AI Web Summarizer
 
-A powerful browser extension that uses advanced AI models to instantly summarize webpages, articles, and documents. Save time by extracting key insights from long content with a single click.
+A powerful browser extension that uses advanced AI models to instantly summarize, translate, and fact-check webpages, articles, and documents. Save time by extracting key insights or reading content in your preferred language with a single click.
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/H2H21VNZU)
 
@@ -13,21 +13,20 @@ A powerful browser extension that uses advanced AI models to instantly summarize
 
 ---
 
-## 📰 Latest Release: v2.1.1
+## 📰 Latest Release: v2.2.0
 
 ### ✨ What's New
-- **Readability extraction**: New content extraction modes — Auto (default), Readability (Mozilla parser), and Current (legacy DOM-based)
-- **Usage statistics**: Local metrics dashboard tracking summarizations, fact checks, extraction methods, provider usage, and errors
-- **Theme selector**: Light/dark theme preference in full settings
+- **Page translation**: Translate full webpages or selected text into your chosen language
+- **Translate shortcut**: New keyboard shortcut (`Ctrl+Alt+T` on Firefox, `Ctrl+Shift+T` on Chrome)
+- **Context menu translate**: Right-click anywhere and select "Translate This"
 
 ### 🔧 Improvements
-- **Better article extraction**: Readability parser improves content quality for news sites and blogs
-- **Extraction mode control**: Choose how content is extracted per your preference
-- **Metrics opt-in**: Usage statistics stored locally, never sent anywhere — disable or reset anytime
+- **Unified language setting**: Language now applies to summaries, translations, and TTS
+- **Ctrl+Enter shortcut**: Send custom prompts from the popup with `Ctrl+Enter`
+- **Updated popup actions**: Cleaner summarize/translate/fact-check buttons
 
 ### 🐛 Bug Fixes
-- Fixed unsafe innerHTML assignments in speak/copy buttons
-- Fixed GitHub link casing
+- Plain-text instruction added to custom prompts to prevent markdown formatting
 
 ---
 
@@ -93,6 +92,7 @@ You need an API key from one of the following providers:
 
 ### 🌍 Multilingual Support
 - 15+ languages: English, Spanish, French, German, Italian, Portuguese, Russian, Chinese, Japanese, Korean, Arabic, Hindi, Dutch, Polish, Turkish
+- Translate full pages or selected text into any supported language
 
 ### 🔊 Text-to-Speech (TTS)
 - Voice selection from available system voices
@@ -101,7 +101,7 @@ You need an API key from one of the following providers:
 - Language-aware voice auto-selection
 
 ### 📊 Usage Statistics
-- Local metrics dashboard: track summarizations, fact checks, extraction methods
+- Local metrics dashboard: track summarizations, translations, fact checks, extraction methods
 - Provider and model usage breakdown
 - All data stored locally — never transmitted
 - Disable or reset anytime
@@ -117,10 +117,10 @@ You need an API key from one of the following providers:
 
 | Method | Instructions |
 |--------|--------------|
-| **Popup** | Click extension icon → "Summarize This Page" |
-| **Context Menu** | Right-click anywhere → "Summarize This Page with AI" |
-| **Keyboard** | Firefox: `Ctrl+Alt+S`/`Ctrl+Alt+F`, Chrome: `Ctrl+Shift+S`/`Ctrl+Shift+F` |
-| **Selection** | Highlight text → click extension → "Summarize Selected Text" |
+| **Popup** | Click extension icon → "Summarize", "Translate", or "Fact Check" |
+| **Context Menu** | Right-click anywhere → "Summarize This Page with AI" or "Translate This" |
+| **Keyboard** | Firefox: `Ctrl+Alt+S`/`Ctrl+Alt+T`/`Ctrl+Alt+F`, Chrome: `Ctrl+Shift+S`/`Ctrl+Shift+T`/`Ctrl+Shift+F` |
+| **Selection** | Highlight text → click extension → "Summarize" or "Translate" |
 
 See [docs/help.md](docs/help.md) for detailed usage guide, TTS controls, and feature explanations.
 
@@ -130,7 +130,7 @@ See [docs/help.md](docs/help.md) for detailed usage guide, TTS controls, and fea
 
 | | Firefox | Chrome |
 |---|---|---|
-| Version | 2.1.1 | 2.1.1 |
+| Version | 2.2.0 | 2.2.0 |
 | Manifest | V2 | V3 |
 | Background | Event-driven script | Service worker |
 | Content limit | 12,000 chars extracted, 10,000 sent to API | 12,000 chars extracted, 10,000 sent to API |
@@ -180,12 +180,12 @@ This project is open source. Feel free to use, modify, and distribute as you see
 
 - **API Keys**: OpenAI at [platform.openai.com](https://platform.openai.com/) or OpenRouter at [openrouter.ai](https://openrouter.ai/)
 - **Model Selection**: GPT-5.4 Mini for cost-effective, GPT-5.4/Claude for quality
-- **Language**: Summarize in original language for better accuracy
+- **Language**: Summarize in original language for better accuracy; use Translate to read in another language
 - **Long articles**: Content truncated at 12,000 chars with notice shown
 
 **For detailed documentation, troubleshooting, and FAQ, see [docs/help.md](docs/help.md).**
 
 ---
 
-**Version**: Firefox 2.1.1 | Chrome 2.1.1
-**Last Updated**: April 15, 2026
+**Version**: Firefox 2.2.0 | Chrome 2.2.0
+**Last Updated**: June 27, 2026
