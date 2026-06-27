@@ -52,6 +52,12 @@
         "default": "Ctrl+Shift+F"
       },
       "description": "Fact check this page"
+    },
+    "translate": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+T"
+      },
+      "description": "Translate this page"
     }
   },
   "background": {

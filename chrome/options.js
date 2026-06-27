@@ -224,7 +224,7 @@ document.getElementById('metricsEnabled').addEventListener('change', (e) => {
 document.getElementById('resetMetricsBtn').addEventListener('click', () => {
   const DEFAULT_METRICS = {
     enabled: true, firstUsed: null, lastUsed: null,
-    counts: { summarize: 0, factCheck: 0, customPrompt: 0, followUp: 0 },
+    counts: { summarize: 0, factCheck: 0, customPrompt: 0, followUp: 0, translate: 0 },
     extraction: { auto: 0, readability: 0, current: 0, readabilitySuccess: 0, readabilityFallback: 0, truncatedCount: 0 },
     provider: { openrouter: 0, openai: 0 },
     model: {},
@@ -245,6 +245,7 @@ function renderMetrics(metrics) {
   const errors = metrics.errors || {};
 
   document.getElementById('metricSummarize').textContent = counts.summarize || 0;
+  document.getElementById('metricTranslate').textContent = counts.translate || 0;
   document.getElementById('metricFactCheck').textContent = counts.factCheck || 0;
   document.getElementById('metricCustomPrompt').textContent = counts.customPrompt || 0;
   document.getElementById('metricFollowUp').textContent = counts.followUp || 0;
@@ -279,7 +280,7 @@ function loadMetrics() {
   chrome.storage.local.get(['metrics'], (data) => {
     const metrics = data.metrics || {
       enabled: true, firstUsed: null, lastUsed: null,
-      counts: { summarize: 0, factCheck: 0, customPrompt: 0, followUp: 0 },
+      counts: { summarize: 0, factCheck: 0, customPrompt: 0, followUp: 0, translate: 0 },
       extraction: { auto: 0, readability: 0, current: 0, readabilitySuccess: 0, readabilityFallback: 0, truncatedCount: 0 },
       provider: { openrouter: 0, openai: 0 },
       model: {},

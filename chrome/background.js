@@ -26,7 +26,7 @@ const DEFAULT_METRICS = {
   enabled: true,
   firstUsed: null,
   lastUsed: null,
-  counts: { summarize: 0, factCheck: 0, customPrompt: 0, followUp: 0 },
+  counts: { summarize: 0, factCheck: 0, customPrompt: 0, followUp: 0, translate: 0 },
   extraction: { auto: 0, readability: 0, current: 0, readabilitySuccess: 0, readabilityFallback: 0, truncatedCount: 0 },
   provider: { openrouter: 0, openai: 0 },
   model: {},
@@ -59,6 +59,8 @@ function recordMetric(entry) {
       metrics.counts.customPrompt++;
     } else if (entry.type === 'followUp') {
       metrics.counts.followUp++;
+    } else if (entry.type === 'translate') {
+      metrics.counts.translate++;
     }
 
     if (entry.extractionMethod !== undefined) {
@@ -119,6 +121,16 @@ function createContextMenu() {
       console.log("Context menu already exists or error:", chrome.runtime.lastError.message);
     }
   });
+
+  chrome.contextMenus.create({
+    id: "translate-page-window",
+    title: "Translate This",
+    contexts: ["all"]
+  }, () => {
+    if (chrome.runtime.lastError) {
+      console.log("Context menu already exists or error:", chrome.runtime.lastError.message);
+    }
+  });
 }
 
 chrome.runtime.onInstalled.addListener(async () => {
@@ -148,6 +160,8 @@ chrome.commands.onCommand.addListener(async (command) => {
     await handleSummarizeRequest(tabs[0], true);
   } else if (command === 'fact-check') {
     await handleFactCheckRequest(tabs[0], null);
+  } else if (command === 'translate') {
+    await handleTranslateRequest(tabs[0], true, null);
   }
 });
 
@@ -157,6 +171,8 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     await handleSummarizeRequest(tab, true, info.selectionText || null);
   } else if (info.menuItemId === "factcheck-page-window") {
     await handleFactCheckRequest(tab, info.selectionText || null);
+  } else if (info.menuItemId === "translate-page-window") {
+    await handleTranslateRequest(tab, true, info.selectionText || null);
   }
 });
 
@@ -166,6 +182,13 @@ let pendingResultWindow = null; // Track window waiting for result
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'summarizePage') {
     handleSummarizeRequest(request.tab, false)
+      .then(result => sendResponse(result))
+      .catch(error => sendResponse({ error: error.message }));
+    return true;
+  }
+
+  if (request.action === 'translatePage') {
+    handleTranslatePageFromPopup(request.tab)
       .then(result => sendResponse(result))
       .catch(error => sendResponse({ error: error.message }));
     return true;
@@ -330,6 +353,108 @@ async function handleSummarizeRequest(tab, openInWindow, contextMenuSelection = 
   }
 }
 
+async function handleTranslateRequest(tab, openInWindow, contextMenuSelection = null) {
+  const data = await chrome.storage.local.get(['apiKeys', 'apiKey', 'provider', 'model', 'language', 'streaming']);
+
+  if (!hasApiKey(data)) {
+    if (openInWindow) {
+      chrome.notifications.create({
+        type: "basic",
+        iconUrl: "icons/icon48.png",
+        title: "API Key Required",
+        message: "Please open the extension settings and save your API key first."
+      });
+    }
+    throw new Error('API key required. Please save your API key in Settings.');
+  }
+
+  const newWindow = await chrome.windows.create({
+    url: chrome.runtime.getURL("result.html") + "?mode=translate",
+    type: "popup",
+    width: 600,
+    height: 700
+  });
+
+  const resultTabId = newWindow.tabs[0].id;
+
+  try {
+    let pageContent;
+    if (contextMenuSelection) {
+      pageContent = { title: tab.title || 'Selected Text', url: tab.url || '', text: contextMenuSelection };
+    } else {
+      pageContent = await chrome.tabs.sendMessage(tab.id, { action: 'getContent' });
+    }
+
+    recordMetric({ type: 'translate', extractionMethod: pageContent.extractionMethod, extractionUsed: pageContent.extractionUsed, wasTruncated: pageContent.wasTruncated, provider: data.provider, model: data.model });
+
+    const selectedText = contextMenuSelection || pageContent.selectedText || null;
+    const contentForAI = selectedText
+      ? { ...pageContent, text: selectedText }
+      : pageContent;
+    const isSelectedText = !!selectedText;
+    const wasTruncated = isSelectedText ? selectedText.length > 10000 : pageContent.wasTruncated;
+
+    const useStreaming = data.streaming !== false;
+    if (useStreaming) {
+      await sendWithRetry(resultTabId, {
+        action: 'streamStart',
+        title: pageContent.title,
+        url: pageContent.url,
+        wasTruncated,
+        isSelectedText,
+        mode: 'translate'
+      });
+    }
+    const translation = await getTranslationFromAI(data, contentForAI, isSelectedText, useStreaming ? { tabId: resultTabId } : null);
+
+    await sendWithRetry(resultTabId, {
+      action: 'displayTranslation',
+      translation: translation,
+      title: pageContent.title,
+      url: pageContent.url,
+      isSelectedText,
+      wasTruncated,
+      pageText: pageContent.text
+    });
+  } catch (error) {
+    console.error('Translation error:', error);
+    recordMetric({ error: 'api' });
+    await sendWithRetry(resultTabId, {
+      action: 'displayError',
+      error: error.message
+    }).catch(() => {
+      chrome.notifications.create({
+        type: "basic",
+        iconUrl: "icons/icon48.png",
+        title: "Translation Failed",
+        message: error.message
+      });
+    });
+  }
+}
+
+// Translate request from popup (returns result directly)
+async function handleTranslatePageFromPopup(tab) {
+  const data = await chrome.storage.local.get(['apiKeys', 'apiKey', 'provider', 'model', 'language']);
+
+  if (!hasApiKey(data)) {
+    throw new Error('API key required. Please save your API key in Settings.');
+  }
+
+  const pageContent = await chrome.tabs.sendMessage(tab.id, { action: 'getContent' });
+  recordMetric({ type: 'translate', extractionMethod: pageContent.extractionMethod, extractionUsed: pageContent.extractionUsed, wasTruncated: pageContent.wasTruncated, provider: data.provider, model: data.model });
+
+  const selectedText = pageContent.selectedText || null;
+  const contentForAI = selectedText
+    ? { ...pageContent, text: selectedText }
+    : pageContent;
+  const isSelectedText = !!selectedText;
+  const wasTruncated = isSelectedText ? selectedText.length > 10000 : pageContent.wasTruncated;
+
+  const translation = await getTranslationFromAI(data, contentForAI, isSelectedText);
+  return { translation, title: pageContent.title, url: pageContent.url, isSelectedText, wasTruncated };
+}
+
 // Fact-check request from context menu (opens result window)
 async function handleFactCheckRequest(tab, selectedText) {
   const data = await chrome.storage.local.get(['apiKeys', 'apiKey', 'provider', 'model', 'language', 'streaming']);
@@ -455,7 +580,7 @@ function buildApiRequest(settings, pageContent, customPrompt, isSelectedText = f
   let prompt;
 
   if (customPrompt) {
-    prompt = customPrompt;
+    prompt = `${customPrompt}\n\nIMPORTANT: Reply in plain text only, no markdown, no formatting.`;
   } else {
     const lang = settings.language || 'english';
     const instruction = lang !== 'english' ? `\n\nIMPORTANT: Summary must be in ${lang}.` : '';
@@ -583,6 +708,68 @@ async function getSummaryFromAI(settings, pageContent, customPrompt, isSelectedT
     method: 'POST',
     headers: headers,
     body: JSON.stringify(nonStreamBody)
+  });
+
+  const resData = await response.json();
+  if (!response.ok) {
+    throw new Error(resData.error?.message || 'API Error');
+  }
+
+  return resData.choices[0].message.content;
+}
+
+async function getTranslationFromAI(settings, pageContent, isSelectedText = false, streamTarget = null) {
+  const lang = settings.language || 'english';
+  const sourceHint = isSelectedText ? 'selected text from' : 'content from';
+  const prompt = `Translate the following ${sourceHint}: ${pageContent.title}\nURL: ${pageContent.url}\n\nTarget language: ${lang}\n\nPreserve meaning and tone. Output only the translation, no explanations, no markdown.\n\nText:\n${pageContent.text.substring(0, 10000)}`;
+
+  const url = settings.provider === 'openai'
+    ? 'https://api.openai.com/v1/chat/completions'
+    : 'https://openrouter.ai/api/v1/chat/completions';
+
+  const defaultModel = settings.provider === 'openai' ? 'gpt-4o-mini' : 'openai/gpt-4o-mini';
+
+  const messages = settings.provider === 'openai'
+    ? [
+        { role: 'system', content: 'You are a helpful assistant.' },
+        { role: 'user', content: prompt }
+      ]
+    : [{ role: 'user', content: prompt }];
+
+  const headers = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${sanitizeHeader(getApiKey(settings))}`
+  };
+
+  if (settings.provider === 'openrouter') {
+    headers['HTTP-Referer'] = 'https://github.com/pashol/AI-Web-Summarizer';
+    headers['X-Title'] = 'AI Web Summarizer';
+  }
+
+  const resolvedModel = settings.model || defaultModel;
+  const body = {
+    model: resolvedModel,
+    messages: messages,
+    ...maxTokensParam(resolvedModel, 1500),
+    stream: !!streamTarget
+  };
+
+  if (streamTarget) {
+    return await streamApiRequest(url, headers, body, (chunk, fullText) => {
+      try {
+        chrome.tabs.sendMessage(streamTarget.tabId, {
+          action: 'appendStreamChunk',
+          chunk: chunk,
+          fullText: fullText
+        }, () => { if (chrome.runtime.lastError) {} });
+      } catch (e) {}
+    });
+  }
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: headers,
+    body: JSON.stringify(body)
   });
 
   const resData = await response.json();

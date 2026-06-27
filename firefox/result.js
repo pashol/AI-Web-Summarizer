@@ -60,6 +60,12 @@ if (pageMode === 'factcheck') {
   document.title = 'AI Fact Check Result';
 }
 
+if (pageMode === 'translate') {
+  const loadingP = document.querySelector('#loading p');
+  if (loadingP) loadingP.textContent = 'Translating with AI...';
+  document.title = 'AI Translation Result';
+}
+
 // Get best voice
 async function getBestVoice(preferredVoiceName) {
   const data = await browser.storage.local.get(['language']);
@@ -104,6 +110,9 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
   } else if (request.action === 'displayFactCheck') {
     displayFactCheck(request.factCheck, request.title, request.url, request.isSelectedText);
     sendResponse({ success: true });
+  } else if (request.action === 'displayTranslation') {
+    displayTranslation(request.translation, request.title, request.url, request.wasTruncated, request.isSelectedText, request.pageText);
+    sendResponse({ success: true });
   } else if (request.action === 'displayError') {
     displayError(request.error);
     sendResponse({ success: true });
@@ -129,6 +138,27 @@ function displaySummary(summary, title, url, wasTruncated, isSelectedText, pageT
   storedPageContent = { title, url, text: pageText || '' };
   storedSummary = summary;
   conversationHistory = [];
+}
+
+function displayTranslation(translation, title, url, wasTruncated, isSelectedText, pageText) {
+  isStreaming = false;
+  document.getElementById('loading').style.display = 'none';
+  if (!pageInfoSet) {
+    setPageInfo(title, url, wasTruncated, isSelectedText, 'translate');
+  }
+
+  const summaryEl = document.getElementById('summary');
+  summaryEl.textContent = translation;
+  summaryEl.style.display = 'block';
+  document.getElementById('actions').style.display = 'flex';
+
+  storedPageContent = { title, url, text: pageText || '' };
+  storedSummary = '';
+  conversationHistory = [];
+
+  const copyBtn = document.getElementById('copyBtn');
+  copyBtn.querySelector('svg').innerHTML = '<rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>';
+  copyBtn.lastChild.textContent = ' Copy Translation';
 }
 
 let isStreaming = false;
@@ -159,16 +189,19 @@ function setPageInfo(title, url, wasTruncated, isSelectedText, mode = 'summary')
     note.style.cssText = 'font-size: 12px; color: #888; margin-top: 4px; font-style: italic;';
     note.textContent = mode === 'factcheck'
       ? '(Fact-checking selected text only)'
-      : 'Note: summarized selected text only.';
+      : mode === 'translate'
+        ? 'Note: translated selected text only.'
+        : 'Note: summarized selected text only.';
     pageUrlElement.appendChild(note);
   }
 
   if (wasTruncated) {
     const note = document.createElement('div');
     note.style.cssText = 'font-size: 12px; color: #888; margin-top: 4px; font-style: italic;';
+    const actionWord = mode === 'translate' ? 'translating' : 'summarizing';
     note.textContent = isSelectedText
-      ? 'Note: selected text was truncated to 10,000 characters before summarizing.'
-      : 'Note: page content was truncated to 12,000 characters before summarizing.';
+      ? `Note: selected text was truncated to 10,000 characters before ${actionWord}.`
+      : `Note: page content was truncated to 12,000 characters before ${actionWord}.`;
     pageUrlElement.appendChild(note);
   }
 

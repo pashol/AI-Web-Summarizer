@@ -114,6 +114,11 @@ function showSetupRequired() {
   factCheckBtn.classList.add('disabled-feature');
   factCheckBtn.title = 'Please configure API key in Full Settings first';
 
+  const translateBtn = document.getElementById('translateBtn');
+  translateBtn.disabled = true;
+  translateBtn.classList.add('disabled-feature');
+  translateBtn.title = 'Please configure API key in Full Settings first';
+
   sendPromptBtn.disabled = true;
   sendPromptBtn.classList.add('disabled-feature');
   sendPromptBtn.title = 'Please configure API key in Full Settings first';
@@ -145,6 +150,11 @@ function enableFeatures() {
   factCheckBtn.disabled = false;
   factCheckBtn.classList.remove('disabled-feature');
   factCheckBtn.title = '';
+
+  const translateBtn = document.getElementById('translateBtn');
+  translateBtn.disabled = false;
+  translateBtn.classList.remove('disabled-feature');
+  translateBtn.title = '';
 
   sendPromptBtn.disabled = false;
   sendPromptBtn.classList.remove('disabled-feature');
@@ -293,6 +303,67 @@ document.getElementById('factCheckBtn').addEventListener('click', async () => {
     }
   } finally {
     btn.disabled = false;
+  }
+});
+
+document.getElementById('translateBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('translateBtn');
+  const result = document.getElementById('result');
+  const speakBtn = document.getElementById('speakBtn');
+
+  synth.cancel();
+  updateSpeakButton(false);
+  speakBtn.style.display = 'none';
+
+  btn.disabled = true;
+  result.className = 'summary loading';
+  result.textContent = 'Translating...';
+  result.removeAttribute('data-selected-text');
+  result.classList.remove('hidden');
+
+  try {
+    const tabs = await browser.tabs.query({ active: true, currentWindow: true });
+
+    const response = await browser.runtime.sendMessage({
+      action: 'translatePage',
+      tab: tabs[0]
+    });
+
+    if (response.error) throw new Error(response.error);
+
+    result.className = 'summary';
+    result.textContent = response.translation;
+    if (response.isSelectedText) {
+      result.dataset.selectedText = 'true';
+      const badge = document.createElement('div');
+      badge.style.cssText = 'font-size: 11px; color: #888; margin-bottom: 8px; font-style: italic;';
+      badge.textContent = 'Note: translated selected text only.';
+      result.appendChild(badge);
+    }
+    if (response.wasTruncated) {
+      const note = document.createElement('div');
+      note.style.cssText = 'font-size: 11px; color: #888; margin-top: 8px; font-style: italic;';
+      note.textContent = response.isSelectedText
+        ? 'Note: selected text was truncated to 10,000 characters.'
+        : 'Note: page content was truncated to 10,000 characters.';
+      result.appendChild(note);
+    }
+    speakBtn.style.display = 'block';
+  } catch (error) {
+    result.className = 'summary error';
+    result.textContent = `Error: ${error.message}`;
+
+    if (error.message.includes('API key')) {
+      document.getElementById('settingsPanel').classList.remove('hidden');
+    }
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+document.getElementById('customPrompt').addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+    document.getElementById('sendPromptBtn').click();
   }
 });
 
