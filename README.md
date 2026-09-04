@@ -13,9 +13,10 @@ A powerful browser extension that uses advanced AI models to instantly summarize
 
 ---
 
-## 📰 Latest Release: v2.2.0
+## 📰 Latest Release: v2.3.1
 
 ### ✨ What's New
+- **Updated OpenAI models**: GPT-5.6 Terra (Balanced), GPT-5.6 Luna (Efficient)
 - **Page translation**: Translate full webpages or selected text into your chosen language
 - **Translate shortcut**: New keyboard shortcut (`Ctrl+Alt+T` on Firefox, `Ctrl+Shift+T` on Chrome)
 - **Context menu translate**: Right-click anywhere and select "Translate This"
@@ -75,7 +76,7 @@ You need an API key from one of the following providers:
 ## ✨ Key Features
 
 ### 🤖 Multi-Provider AI Support
-- **OpenAI**: GPT-5.4 Nano/Mini, GPT-5.4, GPT-4o (Legacy)
+- **OpenAI**: GPT-5.6 Terra (Balanced), GPT-5.6 Luna (Efficient)
 - **OpenRouter**: Gemini 3 Flash, DeepSeek V3.2, Claude Haiku/Sonnet/Opus, Mistral Small 3.2
 - **Free tier**: Auto-selects best free model via OpenRouter
 
@@ -130,12 +131,12 @@ See [docs/help.md](docs/help.md) for detailed usage guide, TTS controls, and fea
 
 | | Firefox | Chrome |
 |---|---|---|
-| Version | 2.2.0 | 2.2.0 |
+| Version | 2.3.1 | 2.3.1 |
 | Manifest | V2 | V3 |
 | Background | Event-driven script | Service worker |
 | Content limit | 12,000 chars extracted, 10,000 sent to API | 12,000 chars extracted, 10,000 sent to API |
 
-**API**: OpenAI (GPT-5.4 series) and OpenRouter (Gemini 3 Flash, DeepSeek V3.2, Claude Haiku/Sonnet/Opus, Mistral, free tier)
+**API**: OpenAI (GPT-5.6 Terra/Luna) and OpenRouter (Gemini 3 Flash, DeepSeek V3.2, Claude Haiku/Sonnet/Opus, Mistral, free tier)
 
 **Privacy**: Keys stored locally, no telemetry, no third-party data sharing. See [Privacy Policy](docs/privacy-policy.md) and [docs/help.md](docs/help.md#privacy--security).
 
@@ -179,7 +180,7 @@ This project is open source. Feel free to use, modify, and distribute as you see
 ## 💡 Tips
 
 - **API Keys**: OpenAI at [platform.openai.com](https://platform.openai.com/) or OpenRouter at [openrouter.ai](https://openrouter.ai/)
-- **Model Selection**: GPT-5.4 Mini for cost-effective, GPT-5.4/Claude for quality
+- **Model Selection**: GPT-5.6 Luna for cost-effective, GPT-5.6 Terra / Claude for quality
 - **Language**: Summarize in original language for better accuracy; use Translate to read in another language
 - **Long articles**: Content truncated at 12,000 chars with notice shown
 
@@ -187,5 +188,5 @@ This project is open source. Feel free to use, modify, and distribute as you see
 
 ---
 
-**Version**: Firefox 2.2.0 | Chrome 2.2.0
-**Last Updated**: June 27, 2026
+**Version**: Firefox 2.3.1 | Chrome 2.3.1
+**Last Updated**: September 4, 2026

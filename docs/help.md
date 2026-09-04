@@ -30,7 +30,7 @@ AI Web Summarizer is a browser extension that uses artificial intelligence to su
 
 - **Firefox 142+** (for Firefox version) or **Chrome** (for Chrome version)
 - An API key from at least one supported provider:
-  - [OpenAI](https://platform.openai.com/api-keys) - Requires payment, offers GPT-4o, GPT-5.4 series
+  - [OpenAI](https://platform.openai.com/api-keys) - Requires payment, offers GPT-5.6 Terra/Luna
   - [OpenRouter](https://openrouter.ai/keys) - Offers free tiers
 
 ---
@@ -147,7 +147,7 @@ On first use, the Settings panel opens automatically:
 
 **OpenAI**
 - Direct API access to OpenAI's models
-- Models: GPT-5.4 Nano, GPT-5.4 Mini, GPT-5.4, GPT-4o (Legacy)
+- Models: GPT-5.6 Terra (Balanced), GPT-5.6 Luna (Efficient)
 - Requires paid API usage
 
 **OpenRouter**
@@ -324,10 +324,8 @@ When you change the target language, TTS automatically:
 - Pay per token (input + output)
 
 **Available Models**:
-- GPT-5.4 Nano
-- GPT-5.4 Mini
-- GPT-5.4
-- GPT-4o (Legacy)
+- GPT-5.6 Terra (Balanced)
+- GPT-5.6 Luna (Efficient)
 
 ### OpenRouter
 
@@ -549,7 +547,7 @@ For full details, see [Privacy Policy](privacy-policy.md).
 ### Saving Costs
 
 1. Use OpenRouter's free tier for testing
-2. Select GPT-5.4 Mini for everyday summaries
+2. Select GPT-5.6 Luna for everyday summaries
 3. Use shorter text selections when possible
 
 ### Voice Quality
@@ -560,5 +558,5 @@ For full details, see [Privacy Policy](privacy-policy.md).
 
 ---
 
-**Version**: Firefox 2.2.0 | Chrome 2.2.0  
-**Last Updated**: June 27, 2026
+**Version**: Firefox 2.3.1 | Chrome 2.3.1  
+**Last Updated**: September 4, 2026

@@ -14,10 +14,8 @@ const MODELS = {
     { id: '~anthropic/claude-opus-latest', name: 'Claude Opus (Latest)' },
   ],
   openai: [
-    { id: 'gpt-5.4-nano', name: 'GPT-5.4 Nano' },
-    { id: 'gpt-5.4-mini', name: 'GPT-5.4 Mini' },
-    { id: 'gpt-5.4', name: 'GPT-5.4' },
-    { id: 'gpt-4o', name: 'GPT-4o (Legacy)' },
+    { id: 'gpt-5.6-terra', name: 'GPT-5.6 Terra (Balanced)' },
+    { id: 'gpt-5.6-luna', name: 'GPT-5.6 Luna (Efficient)' },
   ]
 };
 
@@ -233,7 +231,7 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 function maxTokensParam(model, count) {
-  return /^o\d|gpt-5/i.test(model) ? { max_completion_tokens: count } : { max_tokens: count };
+  return /^o\d|gpt-[56]/i.test(model) ? { max_completion_tokens: count } : { max_tokens: count };
 }
 
 function getApiKey(data) {
@@ -595,7 +593,7 @@ function buildApiRequest(settings, pageContent, customPrompt, isSelectedText = f
     ? 'https://api.openai.com/v1/chat/completions'
     : 'https://openrouter.ai/api/v1/chat/completions';
 
-  const defaultModel = settings.provider === 'openai' ? 'gpt-5.4-mini' : '~openai/gpt-mini-latest';
+  const defaultModel = settings.provider === 'openai' ? 'gpt-5.6-terra' : '~openai/gpt-mini-latest';
 
   const messages = settings.provider === 'openai'
     ? [
@@ -727,7 +725,7 @@ async function getTranslationFromAI(settings, pageContent, isSelectedText = fals
     ? 'https://api.openai.com/v1/chat/completions'
     : 'https://openrouter.ai/api/v1/chat/completions';
 
-  const defaultModel = settings.provider === 'openai' ? 'gpt-5.4-mini' : '~openai/gpt-mini-latest';
+  const defaultModel = settings.provider === 'openai' ? 'gpt-5.6-terra' : '~openai/gpt-mini-latest';
 
   const messages = settings.provider === 'openai'
     ? [
@@ -813,7 +811,7 @@ Answer follow-up questions based on the article above. Be concise and accurate. 
     ? 'https://api.openai.com/v1/chat/completions'
     : 'https://openrouter.ai/api/v1/chat/completions';
 
-  const defaultModel = data.provider === 'openai' ? 'gpt-5.4-mini' : '~openai/gpt-mini-latest';
+  const defaultModel = data.provider === 'openai' ? 'gpt-5.6-terra' : '~openai/gpt-mini-latest';
 
   let messages;
   if (data.provider === 'openai') {
@@ -888,7 +886,7 @@ ${pageContent.text.substring(0, 10000)}`;
     ? 'https://api.openai.com/v1/chat/completions'
     : 'https://openrouter.ai/api/v1/chat/completions';
 
-  const defaultModel = settings.provider === 'openai' ? 'gpt-5.4-mini' : '~openai/gpt-mini-latest';
+  const defaultModel = settings.provider === 'openai' ? 'gpt-5.6-terra' : '~openai/gpt-mini-latest';
 
   // OpenAI: role in system message, task in user message
   // OpenRouter: role + task combined in user message (no system message)
