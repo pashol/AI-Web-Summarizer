@@ -64,12 +64,12 @@ The extension transmits data to **exactly two possible external services**, depe
 
 ### Option A: OpenAI
 - **Endpoint:** `https://api.openai.com/v1/chat/completions`
-- **Data sent:** Your API key (Authorization header) + page title, URL, and text content (up to 8,000 characters) in the request body.
+- **Data sent:** Your API key (Authorization header) + page title, URL, and text content (up to 10,000 characters) in the request body.
 - **OpenAI's Privacy Policy:** https://openai.com/policies/privacy-policy
 
 ### Option B: OpenRouter
 - **Endpoint:** `https://openrouter.ai/api/v1/chat/completions`
-- **Data sent:** Your API key (Authorization header) + page title, URL, and text content (up to 8,000 characters) in the request body.
+- **Data sent:** Your API key (Authorization header) + page title, URL, and text content (up to 10,000 characters) in the request body.
 - **OpenRouter's Privacy Policy:** https://openrouter.ai/privacy
 
 **No other third parties receive any data.** The extension does not use advertising networks, analytics services, or any other external services.

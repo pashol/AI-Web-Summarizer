@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import test from 'node:test';
 import vm from 'node:vm';
 
-function loadContentScript(path, readabilityResult) {
+function loadContentScript(path, readabilityResult, readabilityError) {
   let listener;
   const runtime = { onMessage: { addListener(fn) { listener = fn; } } };
   const document = {
@@ -18,7 +18,12 @@ function loadContentScript(path, readabilityResult) {
     chrome: { runtime },
     document,
     window: { location: { href: 'https://example.test/' }, getSelection() { return { toString() { return ''; } }; } },
-    Readability: class { parse() { return readabilityResult; } },
+    Readability: class {
+      parse() {
+        if (readabilityError) throw readabilityError;
+        return readabilityResult;
+      }
+    },
     Array, JSON, Set, console
   };
   vm.runInNewContext(fs.readFileSync(path, 'utf8'), context, { filename: path });
@@ -48,6 +53,26 @@ for (const path of ['firefox/content.js', 'chrome/content.js']) {
 
     assert.equal(listenerResult, true);
     assert.equal(response.extractionMethod, 'readability');
+    assert.equal(response.extractionUsed, 'current');
+    assert.match(response.text, /legacy page text/);
+  });
+
+  test(`${path} falls back to legacy extraction when Readability text is too short`, async () => {
+    const listener = loadContentScript(path, { textContent: 'short article text' });
+    const response = await new Promise(resolve => {
+      listener({ action: 'getContent' }, null, resolve);
+    });
+
+    assert.equal(response.extractionUsed, 'current');
+    assert.match(response.text, /legacy page text/);
+  });
+
+  test(`${path} falls back to legacy extraction when Readability throws`, async () => {
+    const listener = loadContentScript(path, null, new Error('Readability parse failed'));
+    const response = await new Promise(resolve => {
+      listener({ action: 'getContent' }, null, resolve);
+    });
+
     assert.equal(response.extractionUsed, 'current');
     assert.match(response.text, /legacy page text/);
   });

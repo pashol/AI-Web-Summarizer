@@ -45,7 +45,7 @@ Message flows:
 - API keys are stored as `apiKeys: { openrouter: '...', openai: '...' }` — **not** a single `apiKey`
 - Use `getApiKey(data)` helper in background.js to resolve the correct key for the current provider
 - Old `apiKey` is automatically migrated to `apiKeys` on `onInstalled`
-- Extraction mode stored as `extractionMode: 'auto' | 'readability' | 'current'`
+- Content extraction always tries Mozilla Readability first; a failed or too-short result automatically falls back to the legacy DOM extractor, with Readability success/fallback metrics recorded locally
 - Theme stored as `theme: 'light' | 'dark'`
 - Metrics stored as `metrics: { enabled, counts, extraction, provider, model, errors, daily }`
 
