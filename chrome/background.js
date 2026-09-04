@@ -25,7 +25,7 @@ const DEFAULT_METRICS = {
   firstUsed: null,
   lastUsed: null,
   counts: { summarize: 0, factCheck: 0, customPrompt: 0, followUp: 0, translate: 0 },
-  extraction: { auto: 0, readability: 0, current: 0, readabilitySuccess: 0, readabilityFallback: 0, truncatedCount: 0 },
+  extraction: { readability: 0, readabilitySuccess: 0, readabilityFallback: 0, truncatedCount: 0 },
   provider: { openrouter: 0, openai: 0 },
   model: {},
   errors: { apiError: 0, extractionError: 0 },
@@ -67,7 +67,7 @@ function recordMetric(entry) {
     if (entry.extractionUsed) {
       if (entry.extractionUsed === 'readability') {
         metrics.extraction.readabilitySuccess = (metrics.extraction.readabilitySuccess || 0) + 1;
-      } else if (entry.extractionUsed === 'current' && (entry.extractionMethod === 'auto' || entry.extractionMethod === 'readability')) {
+      } else if (entry.extractionUsed === 'current') {
         metrics.extraction.readabilityFallback = (metrics.extraction.readabilityFallback || 0) + 1;
       }
     }

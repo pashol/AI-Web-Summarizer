@@ -182,27 +182,6 @@ document.getElementById('themeControl').addEventListener('click', (e) => {
   }
 });
 
-const extractionHints = {
-  auto: 'Uses Readability for articles, falls back to standard extraction for other pages.',
-  readability: 'Always uses Mozilla Readability parser, falls back if it produces no content.',
-  current: 'Uses the built-in DOM-based extraction (no Readability).'
-};
-
-function updateExtractionUI(mode) {
-  document.querySelectorAll('.extraction-option').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.value === mode);
-  });
-  const hint = document.getElementById('extractionHint');
-  if (hint) hint.textContent = extractionHints[mode] || extractionHints.auto;
-}
-
-document.getElementById('extractionControl').addEventListener('click', (e) => {
-  if (e.target.classList.contains('extraction-option')) {
-    const mode = e.target.dataset.value;
-    updateExtractionUI(mode);
-  }
-});
-
 document.getElementById('metricsToggle').addEventListener('click', () => {
   const content = document.getElementById('metricsContent');
   const arrow = document.getElementById('metricsArrow');
@@ -223,7 +202,7 @@ document.getElementById('resetMetricsBtn').addEventListener('click', async () =>
   const DEFAULT_METRICS = {
     enabled: true, firstUsed: null, lastUsed: null,
     counts: { summarize: 0, factCheck: 0, customPrompt: 0, followUp: 0, translate: 0 },
-    extraction: { auto: 0, readability: 0, current: 0, readabilitySuccess: 0, readabilityFallback: 0, truncatedCount: 0 },
+    extraction: { readability: 0, readabilitySuccess: 0, readabilityFallback: 0, truncatedCount: 0 },
     provider: { openrouter: 0, openai: 0 },
     model: {},
     errors: { apiError: 0, extractionError: 0 },
@@ -247,9 +226,7 @@ function renderMetrics(metrics) {
   document.getElementById('metricCustomPrompt').textContent = counts.customPrompt || 0;
   document.getElementById('metricFollowUp').textContent = counts.followUp || 0;
 
-  document.getElementById('metricExtractionAuto').textContent = extraction.auto || 0;
   document.getElementById('metricExtractionReadability').textContent = extraction.readability || 0;
-  document.getElementById('metricExtractionCurrent').textContent = extraction.current || 0;
   document.getElementById('metricReadabilitySuccess').textContent = extraction.readabilitySuccess || 0;
   document.getElementById('metricReadabilityFallback').textContent = extraction.readabilityFallback || 0;
   document.getElementById('metricTruncated').textContent = extraction.truncatedCount || 0;
@@ -278,7 +255,7 @@ async function loadMetrics() {
   const metrics = data.metrics || {
     enabled: true, firstUsed: null, lastUsed: null,
     counts: { summarize: 0, factCheck: 0, customPrompt: 0, followUp: 0, translate: 0 },
-    extraction: { auto: 0, readability: 0, current: 0, readabilitySuccess: 0, readabilityFallback: 0, truncatedCount: 0 },
+    extraction: { readability: 0, readabilitySuccess: 0, readabilityFallback: 0, truncatedCount: 0 },
     provider: { openrouter: 0, openai: 0 },
     model: {},
     errors: { apiError: 0, extractionError: 0 },
@@ -295,7 +272,7 @@ async function loadMetrics() {
 async function loadSettings() {
   const data = await browser.storage.local.get([
     'provider', 'apiKeys', 'model', 'language',
-    'ttsRate', 'ttsPitch', 'ttsVoice', 'streaming', 'theme', 'extractionMode'
+    'ttsRate', 'ttsPitch', 'ttsVoice', 'streaming', 'theme'
   ]);
 
   const provider = data.provider || 'openrouter';
@@ -317,9 +294,6 @@ async function loadSettings() {
 
   document.getElementById('streaming').checked = data.streaming !== false;
 
-  const extractionMode = data.extractionMode || 'auto';
-  updateExtractionUI(extractionMode);
-
   updateModelOptions(data.model);
   populateVoiceDropdown(data.ttsVoice);
   updateProviderHint();
@@ -336,11 +310,9 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
   const ttsVoice = document.getElementById('ttsVoice').value;
   const streaming = document.getElementById('streaming').checked;
   const theme = document.querySelector('.theme-option.active').dataset.value;
-  const extractionMode = document.querySelector('.extraction-option.active').dataset.value;
-
   currentApiKeys[provider] = apiKey;
 
-  await browser.storage.local.set({ provider, apiKeys: currentApiKeys, model, language, ttsRate, ttsPitch, ttsVoice, streaming, theme, extractionMode });
+  await browser.storage.local.set({ provider, apiKeys: currentApiKeys, model, language, ttsRate, ttsPitch, ttsVoice, streaming, theme });
 
   const msg = document.getElementById('statusMsg');
   msg.className = 'status-msg success';
