@@ -1,23 +1,19 @@
 browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'getContent') {
-    browser.storage.local.get(['extractionMode']).then(data => {
-      const mode = data.extractionMode || 'auto';
-      const selectedText = window.getSelection().toString().trim();
+    const selectedText = window.getSelection().toString().trim();
+    const { text: fullText, method: extractionUsed } = extractMainContent();
+    const wasTruncated = fullText.length > 12000;
+    const pageContent = {
+      title: document.title,
+      url: window.location.href,
+      text: fullText.substring(0, 12000),
+      selectedText: selectedText || null,
+      wasTruncated,
+      extractionMethod: 'readability',
+      extractionUsed
+    };
 
-      const { text: fullText, method: extractionUsed } = extractMainContent(mode);
-      const wasTruncated = fullText.length > 12000;
-      const pageContent = {
-        title: document.title,
-        url: window.location.href,
-        text: fullText.substring(0, 12000),
-        selectedText: selectedText || null,
-        wasTruncated,
-        extractionMethod: mode,
-        extractionUsed
-      };
-
-      sendResponse(pageContent);
-    });
+    sendResponse(pageContent);
     return true;
   }
 });
@@ -121,12 +117,10 @@ function extractMainContentLegacy() {
   return text;
 }
 
-function extractMainContent(mode) {
-  if (mode === 'readability' || mode === 'auto') {
-    const readabilityResult = extractWithReadability();
-    if (readabilityResult) {
-      return { text: readabilityResult, method: 'readability' };
-    }
+function extractMainContent() {
+  const readabilityResult = extractWithReadability();
+  if (readabilityResult) {
+    return { text: readabilityResult, method: 'readability' };
   }
   return { text: extractMainContentLegacy(), method: 'current' };
 }
