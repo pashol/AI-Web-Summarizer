@@ -20,8 +20,8 @@ AI Web Summarizer is a browser extension for Firefox and Chrome that uses third-
 | Data | Purpose | Where Stored |
 |------|---------|--------------|
 | **AI API Key** (OpenAI or OpenRouter) | Required to authenticate requests to the AI provider of your choice | `browser.storage.local` (browser-encrypted, local only) |
-| **Preferences** (AI provider, model, language, TTS voice/rate/pitch, extraction mode) | Persist your settings between sessions | `browser.storage.local` (local only) |
-| **Usage Metrics** (action counts, extraction method stats, provider/model usage, error counts, daily usage over 30 days) | Help improve the extension by tracking which features are used | `browser.storage.local` (local only; never transmitted; can be disabled in Settings) |
+| **Preferences** (AI provider, model, language, TTS voice/rate/pitch) | Persist your settings between sessions | `browser.storage.local` (local only) |
+| **Usage Metrics** (action counts, extraction method/fallback stats, provider/model usage, error counts, daily usage over 30 days) | Help improve the extension by tracking which features are used | `browser.storage.local` (local only; never transmitted; can be disabled in Settings) |
 | **Custom prompts** (optional, entered in chat panel) | Sent to AI API to answer your question about the current page | In-memory only during request; not stored |
 
 ### 2.2 Web Page Content Accessed When You Initiate a Request
@@ -54,7 +54,7 @@ The extension **does not** read page content in the background, on page load, or
 - **Page content (title, URL, text)** — transmitted once per user-initiated request to the AI provider. The response (summary or fact-check) is displayed in the extension UI and immediately discarded. No page content is cached, stored, or re-transmitted.
 - **Custom prompts** — transmitted once to the AI provider. Not stored locally or remotely by the extension.
 - **Settings** — stored locally in your browser and never sent anywhere.
-- **Usage Metrics** — stored locally in your browser. Metrics track how many times you use each feature (summarize, fact-check, custom prompt, follow-up), which extraction and provider methods are used, and how often content is truncated. No page content, URLs, or API keys are included in metrics. Metrics are never transmitted externally. You can disable or reset metrics at any time in the extension Settings page.
+- **Usage Metrics** — stored locally in your browser. Metrics track how many times you use each feature (summarize, fact-check, custom prompt, follow-up), Readability extraction and fallback statistics, which provider methods are used, and how often content is truncated. No page content, URLs, or API keys are included in metrics. Metrics are never transmitted externally. You can disable or reset metrics at any time in the extension Settings page.
 
 ---
 
@@ -92,7 +92,7 @@ The extension transmits data to **exactly two possible external services**, depe
 | Data | Retention Period |
 |------|-----------------|
 | API Key | Until you delete it in Settings or uninstall the extension |
-| Settings (model, language, TTS, extraction mode) | Until you change them or uninstall the extension |
+| Settings (model, language, TTS) | Until you change them or uninstall the extension |
 | Usage Metrics | Until you reset them in Settings or uninstall the extension; daily usage pruned after 30 days |
 | Page content, URLs, titles | Not retained — discarded immediately after AI response is received |
 | Summaries / AI responses | Not retained — cleared when the popup or result window is closed |
@@ -117,7 +117,7 @@ The following permissions are declared in `manifest.json` and are the minimum re
 | Permission | Why It Is Needed |
 |-----------|-----------------|
 | `activeTab` | Read the title, URL, and text content of the tab you are currently viewing when you initiate a summarization |
-| `storage` | Save your API key, AI provider, model, language, TTS settings, and extraction mode locally |
+| `storage` | Save your API key, AI provider, model, language, and TTS settings locally |
 | `contextMenus` | Add a "Summarize This Page with AI" and "Fact-Check" entry to the browser right-click menu |
 | `notifications` | Notify you when an API key is missing or when an error occurs during a request |
 | `<all_urls>` (content script) | Inject the content extraction script (including Mozilla's Readability.js library) into any page so it can extract text when you request a summary; no data is collected passively |

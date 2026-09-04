@@ -103,7 +103,6 @@ On first use, the Settings panel opens automatically:
 | **TTS Speed** | Speech rate (0.5x to 2.0x) |
 | **TTS Pitch** | Voice pitch (0.5 to 2.0) |
 | **Theme** | Light or dark appearance |
-| **Extraction Mode** | How page content is extracted (Auto, Readability, Current) |
 | **Streaming** | Show summary text as it generates in real-time |
 | **Usage Statistics** | Local metrics tracking (can be disabled) |
 
@@ -157,15 +156,8 @@ On first use, the Settings panel opens automatically:
 
 ### Content Extraction
 
-The extension intelligently extracts content using one of three modes:
+Mozilla Readability extracts clean article content for every request. When Readability cannot extract enough usable text, the extension automatically falls back to its built-in DOM extractor.
 
-**Auto (default)**: Uses Mozilla Readability for article-style pages, falls back to DOM extraction for other pages. Best for most users.
-
-**Readability**: Always uses the Mozilla Readability parser. Produces cleaner output for news articles and blog posts but may fail on non-article pages.
-
-**Current (legacy)**: Uses the built-in DOM-based extraction. Good for non-article pages where Readability doesn't work well.
-
-All modes:
 - Remove ads, navigation menus, sidebars
 - Strip headers and footers
 - Focus on main article content
@@ -174,8 +166,6 @@ All modes:
 **Limits:**
 - Firefox: Extracts up to 12,000 characters, sends 10,000 to API
 - Chrome: Extracts up to 12,000 characters, sends 10,000 to API
-
-Change extraction mode in Settings → Content Extraction.
 
 ### Fact-Check Mode
 
@@ -218,7 +208,7 @@ After receiving a summary, ask follow-up questions:
 The extension tracks local usage metrics to help you understand your usage:
 
 - **Actions**: Summarizations, translations, fact checks, custom prompts, follow-up questions
-- **Extraction**: Which extraction mode is used and how often Readability succeeds or falls back
+- **Extraction**: Readability extraction and fallback statistics
 - **Provider & Model**: Breakdown of API calls by provider (OpenAI/OpenRouter) and model
 - **Errors**: API and extraction error counts
 - **Timeline**: First and last usage dates

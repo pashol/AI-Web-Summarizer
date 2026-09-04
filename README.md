@@ -81,9 +81,7 @@ You need an API key from one of the following providers:
 - **Free tier**: Auto-selects best free model via OpenRouter
 
 ### 🎯 Intelligent Content Extraction
-- **Readability mode**: Mozilla Readability parser for cleaner article extraction
-- **Auto mode**: Uses Readability for articles, falls back to DOM extraction
-- **Current mode**: Legacy DOM-based extraction
+- **Readability-first extraction**: Mozilla Readability extracts clean article content and automatically falls back to the built-in DOM extractor only when necessary.
 - Strips ads, navigation, sidebars, headers, and footers
 - Supports text selection for targeted summarization
 
