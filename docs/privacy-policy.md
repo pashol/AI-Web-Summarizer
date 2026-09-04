@@ -20,7 +20,7 @@ AI Web Summarizer is a browser extension for Firefox and Chrome that uses third-
 | Data | Purpose | Where Stored |
 |------|---------|--------------|
 | **AI API Key** (OpenAI or OpenRouter) | Required to authenticate requests to the AI provider of your choice | `browser.storage.local` (browser-encrypted, local only) |
-| **Preferences** (AI provider, model, language, TTS voice/rate/pitch) | Persist your settings between sessions | `browser.storage.local` (local only) |
+| **Preferences** (AI provider, model, language, TTS voice/rate/pitch, streaming, theme) | Persist your settings between sessions | `browser.storage.local` (local only) |
 | **Usage Metrics** (action counts, extraction method/fallback stats, provider/model usage, error counts, daily usage over 30 days) | Help improve the extension by tracking which features are used | `browser.storage.local` (local only; never transmitted; can be disabled in Settings) |
 | **Custom prompts** (optional, entered in chat panel) | Sent to AI API to answer your question about the current page | In-memory only during request; not stored |
 
@@ -92,7 +92,7 @@ The extension transmits data to **exactly two possible external services**, depe
 | Data | Retention Period |
 |------|-----------------|
 | API Key | Until you delete it in Settings or uninstall the extension |
-| Settings (model, language, TTS) | Until you change them or uninstall the extension |
+| Settings (provider, model, language, TTS, streaming, theme) | Until you change them or uninstall the extension |
 | Usage Metrics | Until you reset them in Settings or uninstall the extension; daily usage pruned after 30 days |
 | Page content, URLs, titles | Not retained — discarded immediately after AI response is received |
 | Summaries / AI responses | Not retained — cleared when the popup or result window is closed |
@@ -117,7 +117,7 @@ The following permissions are declared in `manifest.json` and are the minimum re
 | Permission | Why It Is Needed |
 |-----------|-----------------|
 | `activeTab` | Read the title, URL, and text content of the tab you are currently viewing when you initiate a summarization |
-| `storage` | Save your API key, AI provider, model, language, and TTS settings locally |
+| `storage` | Save your API key, AI provider, model, language, TTS, streaming, and theme settings locally |
 | `contextMenus` | Add a "Summarize This Page with AI" and "Fact-Check" entry to the browser right-click menu |
 | `notifications` | Notify you when an API key is missing or when an error occurs during a request |
 | `<all_urls>` (content script) | Inject the content extraction script (including Mozilla's Readability.js library) into any page so it can extract text when you request a summary; no data is collected passively |
