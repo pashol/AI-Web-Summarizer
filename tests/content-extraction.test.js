@@ -28,16 +28,25 @@ function loadContentScript(path, readabilityResult) {
 for (const path of ['firefox/content.js', 'chrome/content.js']) {
   test(`${path} always identifies Readability as the extraction method`, async () => {
     const listener = loadContentScript(path, { textContent: 'article text '.repeat(30) });
-    const response = await new Promise(resolve => listener({ action: 'getContent' }, null, resolve));
+    let listenerResult;
+    const response = await new Promise(resolve => {
+      listenerResult = listener({ action: 'getContent' }, null, resolve);
+    });
 
+    assert.equal(listenerResult, true);
     assert.equal(response.extractionMethod, 'readability');
     assert.equal(response.extractionUsed, 'readability');
+    assert.equal(response.text, 'article text '.repeat(30).trim());
   });
 
   test(`${path} falls back to legacy extraction when Readability has no usable article`, async () => {
     const listener = loadContentScript(path, null);
-    const response = await new Promise(resolve => listener({ action: 'getContent' }, null, resolve));
+    let listenerResult;
+    const response = await new Promise(resolve => {
+      listenerResult = listener({ action: 'getContent' }, null, resolve);
+    });
 
+    assert.equal(listenerResult, true);
     assert.equal(response.extractionMethod, 'readability');
     assert.equal(response.extractionUsed, 'current');
     assert.match(response.text, /legacy page text/);
