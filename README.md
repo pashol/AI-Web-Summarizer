@@ -160,7 +160,7 @@ See [docs/help.md](docs/help.md) for detailed usage guide, TTS controls, and fea
 - **Firefox**: `about:debugging#/runtime/this-firefox` → Load Temporary Add-on → select `manifest.json`
 - **Chrome**: `chrome://extensions/` → Load unpacked → select `chrome/` folder
 
-**Documentation:** See `CLAUDE.md` for technical documentation.
+**Documentation:** See `AGENTS.md` for technical documentation.
 
 ---
 

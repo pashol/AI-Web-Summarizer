@@ -1,5 +1,6 @@
 *.zip
-!releases/*.zip
 *.tgz
 .worktrees/
+.claude/
+.superpowers/
 
