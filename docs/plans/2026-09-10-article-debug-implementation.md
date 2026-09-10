@@ -2,9 +2,9 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Add a session-only debug mode that shows the exact summary prompt and character counts after a popup summary.
+**Goal:** Add a persisted debug setting that shows the exact summary prompt and character counts after a popup summary.
 
-**Architecture:** Popup holds an in-memory debug flag and sends it with `summarizePage`; background builds one API-request object via `buildApiRequest`, derives debug data from that object, and passes that same object to the API caller. It returns summary plus a debug object only when requested; popup renders counts and full prompt below the result. Content scripts add `fullLength` so extraction-cap loss is visible. No API keys or headers ever enter the debug payload.
+**Architecture:** Full Settings stores `debugEnabled`; popup reads it before sending `summarizePage`. Background builds one API-request object via `buildApiRequest`, derives debug data from that object, and passes that same object to the API caller. It returns summary plus a debug object only when requested; popup renders counts and full prompt below the result. Content scripts add `fullLength` so extraction-cap loss is visible. No API keys or headers ever enter the debug payload.
 
 **Tech Stack:** Vanilla JS browser extensions, Firefox `browser.*` promises (MV2), Chrome `chrome.*` (MV3), no build step, manual load testing.
 
