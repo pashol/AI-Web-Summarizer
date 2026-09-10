@@ -245,9 +245,24 @@ function hasApiKey(data) {
   return key && key.trim().length > 0;
 }
 
+const ARTICLE_TEXT_LIMIT_DEFAULT = 25000;
+const ARTICLE_TEXT_LIMIT_MIN = 1000;
+const ARTICLE_TEXT_LIMIT_MAX = 100000;
+
+function getArticleTextLimit(settings) {
+  const raw = Number(settings?.articleTextLimit);
+  if (!Number.isFinite(raw)) return ARTICLE_TEXT_LIMIT_DEFAULT;
+  return Math.min(ARTICLE_TEXT_LIMIT_MAX, Math.max(ARTICLE_TEXT_LIMIT_MIN, Math.floor(raw)));
+}
+
+function limitArticleText(text, limit) {
+  return (text || '').substring(0, limit);
+}
+
 // Centralized function to handle summarization
 async function handleSummarizeRequest(tab, openInWindow, contextMenuSelection = null, debugRequested = false) {
-  const data = await browser.storage.local.get(['apiKeys', 'apiKey', 'provider', 'model', 'language', 'streaming']);
+  const data = await browser.storage.local.get(['apiKeys', 'apiKey', 'provider', 'model', 'language', 'streaming', 'articleTextLimit']);
+  const articleTextLimit = getArticleTextLimit(data);
 
   if (!hasApiKey(data)) {
     if (openInWindow) {
@@ -275,17 +290,24 @@ async function handleSummarizeRequest(tab, openInWindow, contextMenuSelection = 
 
     // Fetch content and summary in background
     try {
-      const pageContent = await browser.tabs.sendMessage(tab.id, { action: 'getContent' });
+      const pageContent = await browser.tabs.sendMessage(tab.id, { action: 'getContent', articleTextLimit });
 
       recordMetric({ type: 'summarize', extractionMethod: pageContent.extractionMethod, extractionUsed: pageContent.extractionUsed, wasTruncated: pageContent.wasTruncated, provider: data.provider, model: data.model });
 
       // Use context menu selection, then content script selection, then full page
       const selectedText = contextMenuSelection || pageContent.selectedText || null;
-      const contentForAI = selectedText
+      let contentForAI = selectedText
         ? { ...pageContent, text: selectedText }
         : pageContent;
+      contentForAI = {
+        ...contentForAI,
+        text: limitArticleText(contentForAI.text, articleTextLimit)
+      };
       const isSelectedText = !!selectedText;
-      const wasTruncated = isSelectedText ? selectedText.length > 10000 : pageContent.wasTruncated;
+      const selectedSourceLength = isSelectedText ? (selectedText || '').length : 0;
+      const wasTruncated = isSelectedText
+        ? selectedSourceLength > articleTextLimit
+        : pageContent.wasTruncated;
 
       const useStreaming = data.streaming !== false;
       if (useStreaming) {
@@ -295,7 +317,8 @@ async function handleSummarizeRequest(tab, openInWindow, contextMenuSelection = 
           url: pageContent.url,
           wasTruncated,
           isSelectedText,
-          mode: 'summary'
+          mode: 'summary',
+          truncationLimit: articleTextLimit
         });
       }
       const summary = await getSummaryFromAI(data, contentForAI, null, isSelectedText, useStreaming ? { tabId: resultTabId } : null);
@@ -308,6 +331,7 @@ async function handleSummarizeRequest(tab, openInWindow, contextMenuSelection = 
         url: pageContent.url,
         isSelectedText,
         wasTruncated,
+        truncationLimit: articleTextLimit,
         pageText: pageContent.text
       });
     } catch (error) {
@@ -330,19 +354,26 @@ async function handleSummarizeRequest(tab, openInWindow, contextMenuSelection = 
   } else {
     // Popup mode: return result directly
     try {
-      const pageContent = await browser.tabs.sendMessage(tab.id, { action: 'getContent' });
+      const pageContent = await browser.tabs.sendMessage(tab.id, { action: 'getContent', articleTextLimit });
 
       recordMetric({ type: 'summarize', extractionMethod: pageContent.extractionMethod, extractionUsed: pageContent.extractionUsed, wasTruncated: pageContent.wasTruncated, provider: data.provider, model: data.model });
 
       const selectedText = pageContent.selectedText || null;
-      const contentForAI = selectedText
+      let contentForAI = selectedText
         ? { ...pageContent, text: selectedText }
         : pageContent;
+      contentForAI = {
+        ...contentForAI,
+        text: limitArticleText(contentForAI.text, articleTextLimit)
+      };
       const isSelectedText = !!selectedText;
-      const wasTruncated = isSelectedText ? selectedText.length > 10000 : pageContent.wasTruncated;
+      const selectedSourceLength = isSelectedText ? (selectedText || '').length : 0;
+      const wasTruncated = isSelectedText
+        ? selectedSourceLength > articleTextLimit
+        : pageContent.wasTruncated;
 
       const sourceBefore = (contentForAI.text || '').length;
-      const sourceAfter = Math.min(sourceBefore, 10000);
+      const sourceAfter = Math.min(sourceBefore, articleTextLimit);
       const apiRequest = debugRequested
         ? buildApiRequest(data, contentForAI, null, isSelectedText)
         : null;
@@ -350,7 +381,7 @@ async function handleSummarizeRequest(tab, openInWindow, contextMenuSelection = 
         ? apiRequest.body.messages[apiRequest.body.messages.length - 1].content
         : null;
       const summary = await getSummaryFromAI(data, contentForAI, null, isSelectedText, null, apiRequest);
-      const result = { summary, title: pageContent.title, url: pageContent.url, isSelectedText, wasTruncated };
+      const result = { summary, title: pageContent.title, url: pageContent.url, isSelectedText, wasTruncated, truncationLimit: articleTextLimit };
       if (debugRequested) {
         result.debug = {
           source: isSelectedText ? 'selected' : 'page',
@@ -359,6 +390,7 @@ async function handleSummarizeRequest(tab, openInWindow, contextMenuSelection = 
           extractedAfter: pageContent.text.length,
           sourceBefore,
           sourceAfter,
+          articleTextLimit,
           promptLength: promptText.length,
           prompt: promptText
         };
@@ -373,7 +405,8 @@ async function handleSummarizeRequest(tab, openInWindow, contextMenuSelection = 
 }
 
 async function handleTranslateRequest(tab, openInWindow, contextMenuSelection = null) {
-  const data = await browser.storage.local.get(['apiKeys', 'apiKey', 'provider', 'model', 'language', 'streaming']);
+  const data = await browser.storage.local.get(['apiKeys', 'apiKey', 'provider', 'model', 'language', 'streaming', 'articleTextLimit']);
+  const articleTextLimit = getArticleTextLimit(data);
 
   if (!hasApiKey(data)) {
     if (openInWindow) {
@@ -401,17 +434,24 @@ async function handleTranslateRequest(tab, openInWindow, contextMenuSelection = 
     if (contextMenuSelection) {
       pageContent = { title: tab.title || 'Selected Text', url: tab.url || '', text: contextMenuSelection };
     } else {
-      pageContent = await browser.tabs.sendMessage(tab.id, { action: 'getContent' });
+      pageContent = await browser.tabs.sendMessage(tab.id, { action: 'getContent', articleTextLimit });
     }
 
     recordMetric({ type: 'translate', extractionMethod: pageContent.extractionMethod, extractionUsed: pageContent.extractionUsed, wasTruncated: pageContent.wasTruncated, provider: data.provider, model: data.model });
 
     const selectedText = contextMenuSelection || pageContent.selectedText || null;
-    const contentForAI = selectedText
+    let contentForAI = selectedText
       ? { ...pageContent, text: selectedText }
       : pageContent;
+    contentForAI = {
+      ...contentForAI,
+      text: limitArticleText(contentForAI.text, articleTextLimit)
+    };
     const isSelectedText = !!selectedText;
-    const wasTruncated = isSelectedText ? selectedText.length > 10000 : pageContent.wasTruncated;
+    const selectedSourceLength = isSelectedText ? (selectedText || '').length : 0;
+    const wasTruncated = isSelectedText
+      ? selectedSourceLength > articleTextLimit
+      : pageContent.wasTruncated;
 
     const useStreaming = data.streaming !== false;
     if (useStreaming) {
@@ -421,7 +461,8 @@ async function handleTranslateRequest(tab, openInWindow, contextMenuSelection = 
         url: pageContent.url,
         wasTruncated,
         isSelectedText,
-        mode: 'translate'
+        mode: 'translate',
+        truncationLimit: articleTextLimit
       });
     }
     const translation = await getTranslationFromAI(data, contentForAI, isSelectedText, useStreaming ? { tabId: resultTabId } : null);
@@ -433,6 +474,7 @@ async function handleTranslateRequest(tab, openInWindow, contextMenuSelection = 
       url: pageContent.url,
       isSelectedText,
       wasTruncated,
+      truncationLimit: articleTextLimit,
       pageText: pageContent.text
     });
   } catch (error) {
@@ -454,29 +496,38 @@ async function handleTranslateRequest(tab, openInWindow, contextMenuSelection = 
 
 // Translate request from popup (returns result directly)
 async function handleTranslatePageFromPopup(tab) {
-  const data = await browser.storage.local.get(['apiKeys', 'apiKey', 'provider', 'model', 'language']);
+  const data = await browser.storage.local.get(['apiKeys', 'apiKey', 'provider', 'model', 'language', 'articleTextLimit']);
+  const articleTextLimit = getArticleTextLimit(data);
 
   if (!hasApiKey(data)) {
     throw new Error('API key required. Please save your API key in Settings.');
   }
 
-  const pageContent = await browser.tabs.sendMessage(tab.id, { action: 'getContent' });
+  const pageContent = await browser.tabs.sendMessage(tab.id, { action: 'getContent', articleTextLimit });
   recordMetric({ type: 'translate', extractionMethod: pageContent.extractionMethod, extractionUsed: pageContent.extractionUsed, wasTruncated: pageContent.wasTruncated, provider: data.provider, model: data.model });
 
   const selectedText = pageContent.selectedText || null;
-  const contentForAI = selectedText
+  let contentForAI = selectedText
     ? { ...pageContent, text: selectedText }
     : pageContent;
+  contentForAI = {
+    ...contentForAI,
+    text: limitArticleText(contentForAI.text, articleTextLimit)
+  };
   const isSelectedText = !!selectedText;
-  const wasTruncated = isSelectedText ? selectedText.length > 10000 : pageContent.wasTruncated;
+  const selectedSourceLength = isSelectedText ? (selectedText || '').length : 0;
+  const wasTruncated = isSelectedText
+    ? selectedSourceLength > articleTextLimit
+    : pageContent.wasTruncated;
 
   const translation = await getTranslationFromAI(data, contentForAI, isSelectedText);
-  return { translation, title: pageContent.title, url: pageContent.url, isSelectedText, wasTruncated };
+  return { translation, title: pageContent.title, url: pageContent.url, isSelectedText, wasTruncated, truncationLimit: articleTextLimit };
 }
 
 // Fact-check request from context menu (opens result window)
 async function handleFactCheckRequest(tab, selectedText) {
-  const data = await browser.storage.local.get(['apiKeys', 'apiKey', 'provider', 'model', 'language', 'streaming']);
+  const data = await browser.storage.local.get(['apiKeys', 'apiKey', 'provider', 'model', 'language', 'streaming', 'articleTextLimit']);
+  const articleTextLimit = getArticleTextLimit(data);
 
   if (!hasApiKey(data)) {
     browser.notifications.create({
@@ -502,10 +553,22 @@ async function handleFactCheckRequest(tab, selectedText) {
     if (selectedText) {
       pageContent = { title: tab.title || 'Selected Text', url: tab.url || '', text: selectedText };
     } else {
-      pageContent = await browser.tabs.sendMessage(tab.id, { action: 'getContent' });
+      pageContent = await browser.tabs.sendMessage(tab.id, { action: 'getContent', articleTextLimit });
     }
 
     recordMetric({ type: 'factCheck', extractionMethod: pageContent.extractionMethod, extractionUsed: pageContent.extractionUsed, wasTruncated: pageContent.wasTruncated, provider: data.provider, model: data.model });
+
+    let contentForAI = { ...pageContent };
+    contentForAI = {
+      ...contentForAI,
+      text: limitArticleText(contentForAI.text, articleTextLimit)
+    };
+    pageContent = { ...pageContent, text: contentForAI.text };
+    const isSelectedText = !!selectedText;
+    const selectedSourceLength = isSelectedText ? (selectedText || '').length : 0;
+    const wasTruncated = isSelectedText
+      ? selectedSourceLength > articleTextLimit
+      : pageContent.wasTruncated;
 
     const useStreaming = data.streaming !== false;
     if (useStreaming) {
@@ -513,9 +576,10 @@ async function handleFactCheckRequest(tab, selectedText) {
         action: 'streamStart',
         title: pageContent.title,
         url: pageContent.url,
-        wasTruncated: false,
-        isSelectedText: !!selectedText,
-        mode: 'factcheck'
+        wasTruncated,
+        isSelectedText,
+        mode: 'factcheck',
+        truncationLimit: articleTextLimit
       });
     }
     const factCheck = await getFactCheckFromAI(data, pageContent, useStreaming ? { tabId: resultTabId } : null);
@@ -525,7 +589,9 @@ async function handleFactCheckRequest(tab, selectedText) {
       factCheck: factCheck,
       title: pageContent.title,
       url: pageContent.url,
-      isSelectedText: !!selectedText
+      isSelectedText,
+      wasTruncated,
+      truncationLimit: articleTextLimit
     });
   } catch (error) {
     console.error('Fact-check error:', error);
@@ -546,16 +612,29 @@ async function handleFactCheckRequest(tab, selectedText) {
 
 // Fact-check request from popup (returns result directly)
 async function handleFactCheckPageFromPopup(tab) {
-  const data = await browser.storage.local.get(['apiKeys', 'apiKey', 'provider', 'model', 'language']);
+  const data = await browser.storage.local.get(['apiKeys', 'apiKey', 'provider', 'model', 'language', 'articleTextLimit']);
+  const articleTextLimit = getArticleTextLimit(data);
 
   if (!hasApiKey(data)) {
     throw new Error('API key required. Please save your API key in Settings.');
   }
 
-  const pageContent = await browser.tabs.sendMessage(tab.id, { action: 'getContent' });
+  let pageContent = await browser.tabs.sendMessage(tab.id, { action: 'getContent', articleTextLimit });
   recordMetric({ type: 'factCheck', extractionMethod: pageContent.extractionMethod, extractionUsed: pageContent.extractionUsed, wasTruncated: pageContent.wasTruncated, provider: data.provider, model: data.model });
+  let contentForAI = { ...pageContent };
+  contentForAI = {
+    ...contentForAI,
+    text: limitArticleText(contentForAI.text, articleTextLimit)
+  };
+  pageContent = { ...pageContent, text: contentForAI.text };
+  const selectedText = pageContent.selectedText || contentForAI.selectedText || null;
+  const isSelectedText = !!selectedText;
+  const selectedSourceLength = isSelectedText ? (selectedText || '').length : 0;
+  const wasTruncated = isSelectedText
+    ? selectedSourceLength > articleTextLimit
+    : pageContent.wasTruncated;
   const factCheck = await getFactCheckFromAI(data, pageContent);
-  return { factCheck, title: pageContent.title, url: pageContent.url };
+  return { factCheck, title: pageContent.title, url: pageContent.url, isSelectedText, wasTruncated, truncationLimit: articleTextLimit };
 }
 
 // Send message with retry logic (3 attempts, 100-150ms backoff)
@@ -604,9 +683,9 @@ function buildApiRequest(settings, pageContent, customPrompt, isSelectedText = f
     const lang = settings.language || 'english';
     const instruction = lang !== 'english' ? `\n\nIMPORTANT: Summary must be in ${lang}.` : '';
     if (isSelectedText) {
-      prompt = `Concise plain text summary (no markdown) of the following selected text from: ${pageContent.title}\nURL: ${pageContent.url}\n\nSelected text:\n${pageContent.text.substring(0, 10000)}${instruction}`;
+      prompt = `Concise plain text summary (no markdown) of the following selected text from: ${pageContent.title}\nURL: ${pageContent.url}\n\nSelected text:\n${limitArticleText(pageContent.text, getArticleTextLimit(settings))}${instruction}`;
     } else {
-      prompt = `Concise plain text summary (no markdown) of: ${pageContent.title}\nURL: ${pageContent.url}\n\nContent:\n${pageContent.text.substring(0, 10000)}${instruction}`;
+      prompt = `Concise plain text summary (no markdown) of: ${pageContent.title}\nURL: ${pageContent.url}\n\nContent:\n${limitArticleText(pageContent.text, getArticleTextLimit(settings))}${instruction}`;
     }
   }
 
@@ -740,7 +819,7 @@ async function getSummaryFromAI(settings, pageContent, customPrompt, isSelectedT
 async function getTranslationFromAI(settings, pageContent, isSelectedText = false, streamTarget = null) {
   const lang = settings.language || 'english';
   const sourceHint = isSelectedText ? 'selected text from' : 'content from';
-  const prompt = `Translate the following ${sourceHint}: ${pageContent.title}\nURL: ${pageContent.url}\n\nTarget language: ${lang}\n\nPreserve meaning and tone. Output only the translation, no explanations, no markdown.\n\nText:\n${pageContent.text.substring(0, 10000)}`;
+  const prompt = `Translate the following ${sourceHint}: ${pageContent.title}\nURL: ${pageContent.url}\n\nTarget language: ${lang}\n\nPreserve meaning and tone. Output only the translation, no explanations, no markdown.\n\nText:\n${limitArticleText(pageContent.text, getArticleTextLimit(settings))}`;
 
   const url = settings.provider === 'openai'
     ? 'https://api.openai.com/v1/chat/completions'
@@ -801,7 +880,7 @@ async function getTranslationFromAI(settings, pageContent, isSelectedText = fals
 
 // Follow-up question AI logic (multi-turn, grounded in article)
 async function getFollowUpFromAI({ question, pageContent, summary, conversationHistory }) {
-  const data = await browser.storage.local.get(['apiKeys', 'apiKey', 'provider', 'model', 'language']);
+  const data = await browser.storage.local.get(['apiKeys', 'apiKey', 'provider', 'model', 'language', 'articleTextLimit']);
 
   if (!hasApiKey(data)) {
     throw new Error('API key required. Please save your API key in Settings.');
@@ -809,7 +888,7 @@ async function getFollowUpFromAI({ question, pageContent, summary, conversationH
 
   recordMetric({ type: 'followUp', provider: data.provider, model: data.model });
 
-  const articleSnippet = (pageContent.text || '').substring(0, 10000);
+  const articleSnippet = limitArticleText(pageContent.text, getArticleTextLimit(data));
   const lang = data.language || 'english';
   const langInstruction = lang !== 'english' ? `\n\nIMPORTANT: Your entire response must be in ${lang}.` : '';
 
@@ -901,7 +980,7 @@ Page title: ${pageContent.title}
 URL: ${pageContent.url}
 
 Content:
-${pageContent.text.substring(0, 10000)}`;
+${limitArticleText(pageContent.text, getArticleTextLimit(settings))}`;
 
   const url = settings.provider === 'openai'
     ? 'https://api.openai.com/v1/chat/completions'
