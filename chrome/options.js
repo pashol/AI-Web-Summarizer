@@ -200,6 +200,10 @@ document.getElementById('metricsEnabled').addEventListener('change', (e) => {
   });
 });
 
+document.getElementById('debugEnabled').addEventListener('change', (e) => {
+  chrome.storage.local.set({ debugEnabled: e.target.checked });
+});
+
 document.getElementById('resetMetricsBtn').addEventListener('click', () => {
   const DEFAULT_METRICS = {
     enabled: true, firstUsed: null, lastUsed: null,
@@ -254,7 +258,7 @@ function renderMetrics(metrics) {
 }
 
 function loadMetrics() {
-  chrome.storage.local.get(['metrics'], (data) => {
+  chrome.storage.local.get(['metrics', 'debugEnabled'], (data) => {
     const metrics = data.metrics || {
       enabled: true, firstUsed: null, lastUsed: null,
       counts: { summarize: 0, factCheck: 0, customPrompt: 0, followUp: 0, translate: 0 },
@@ -266,6 +270,7 @@ function loadMetrics() {
     };
 
     document.getElementById('metricsEnabled').checked = metrics.enabled !== false;
+    document.getElementById('debugEnabled').checked = data.debugEnabled === true;
     const statsEl = document.getElementById('metricsStats');
     statsEl.style.display = metrics.enabled !== false ? '' : 'none';
 

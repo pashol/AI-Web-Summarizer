@@ -9,6 +9,7 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
       text: fullText.substring(0, 12000),
       selectedText: selectedText || null,
       wasTruncated,
+      fullLength: fullText.length,
       extractionMethod: 'readability',
       extractionUsed
     };

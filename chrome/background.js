@@ -179,7 +179,7 @@ let pendingResultWindow = null; // Track window waiting for result
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'summarizePage') {
-    handleSummarizeRequest(request.tab, false)
+    handleSummarizeRequest(request.tab, false, null, request.debug === true)
       .then(result => sendResponse(result))
       .catch(error => sendResponse({ error: error.message }));
     return true;
@@ -246,7 +246,7 @@ function hasApiKey(data) {
 }
 
 // Centralized function to handle summarization
-async function handleSummarizeRequest(tab, openInWindow, contextMenuSelection = null) {
+async function handleSummarizeRequest(tab, openInWindow, contextMenuSelection = null, debugRequested = false) {
   const data = await chrome.storage.local.get(['apiKeys', 'apiKey', 'provider', 'model', 'language', 'streaming']);
 
   if (!hasApiKey(data)) {
@@ -341,8 +341,29 @@ async function handleSummarizeRequest(tab, openInWindow, contextMenuSelection = 
       const isSelectedText = !!selectedText;
       const wasTruncated = isSelectedText ? selectedText.length > 10000 : pageContent.wasTruncated;
 
-      const summary = await getSummaryFromAI(data, contentForAI, null, isSelectedText);
-      return { summary, title: pageContent.title, url: pageContent.url, isSelectedText, wasTruncated };
+      const sourceBefore = (contentForAI.text || '').length;
+      const sourceAfter = Math.min(sourceBefore, 10000);
+      const apiRequest = debugRequested
+        ? buildApiRequest(data, contentForAI, null, isSelectedText)
+        : null;
+      const promptText = apiRequest
+        ? apiRequest.body.messages[apiRequest.body.messages.length - 1].content
+        : null;
+      const summary = await getSummaryFromAI(data, contentForAI, null, isSelectedText, null, apiRequest);
+      const result = { summary, title: pageContent.title, url: pageContent.url, isSelectedText, wasTruncated };
+      if (debugRequested) {
+        result.debug = {
+          source: isSelectedText ? 'selected' : 'page',
+          extractionUsed: pageContent.extractionUsed || null,
+          extractedBefore: pageContent.fullLength ?? pageContent.text.length,
+          extractedAfter: pageContent.text.length,
+          sourceBefore,
+          sourceAfter,
+          promptLength: promptText.length,
+          prompt: promptText
+        };
+      }
+      return result;
     } catch (error) {
       console.error('Summarization error:', error);
       recordMetric({ error: 'api' });
@@ -686,8 +707,8 @@ async function streamApiRequest(url, headers, body, onChunk) {
 }
 
 // Centralized AI Logic
-async function getSummaryFromAI(settings, pageContent, customPrompt, isSelectedText = false, streamTarget = null) {
-  const { url, headers, body } = buildApiRequest(settings, pageContent, customPrompt, isSelectedText);
+async function getSummaryFromAI(settings, pageContent, customPrompt, isSelectedText = false, streamTarget = null, apiRequest = null) {
+  const { url, headers, body } = apiRequest || buildApiRequest(settings, pageContent, customPrompt, isSelectedText);
 
   if (streamTarget) {
     return await streamApiRequest(url, headers, body, (chunk, fullText) => {

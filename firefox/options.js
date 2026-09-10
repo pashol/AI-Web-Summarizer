@@ -198,6 +198,10 @@ document.getElementById('metricsEnabled').addEventListener('change', async (e) =
   statsEl.style.display = e.target.checked ? '' : 'none';
 });
 
+document.getElementById('debugEnabled').addEventListener('change', async (e) => {
+  await browser.storage.local.set({ debugEnabled: e.target.checked });
+});
+
 document.getElementById('resetMetricsBtn').addEventListener('click', async () => {
   const DEFAULT_METRICS = {
     enabled: true, firstUsed: null, lastUsed: null,
@@ -251,7 +255,7 @@ function renderMetrics(metrics) {
 }
 
 async function loadMetrics() {
-  const data = await browser.storage.local.get(['metrics']);
+  const data = await browser.storage.local.get(['metrics', 'debugEnabled']);
   const metrics = data.metrics || {
     enabled: true, firstUsed: null, lastUsed: null,
     counts: { summarize: 0, factCheck: 0, customPrompt: 0, followUp: 0, translate: 0 },
@@ -263,6 +267,7 @@ async function loadMetrics() {
   };
 
   document.getElementById('metricsEnabled').checked = metrics.enabled !== false;
+  document.getElementById('debugEnabled').checked = data.debugEnabled === true;
   const statsEl = document.getElementById('metricsStats');
   statsEl.style.display = metrics.enabled !== false ? '' : 'none';
 

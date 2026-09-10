@@ -2,7 +2,7 @@
 
 ## Goal
 
-Add a session-only debug mode that lets a user inspect the exact prompt sent for a page summary, including character counts. The data will help choose a sensible larger article-length limit later.
+Add a user-controlled debug mode that lets a user inspect the exact prompt sent for a page summary, including character counts. The data will help choose a sensible larger article-length limit later.
 
 ## Scope
 
@@ -10,7 +10,7 @@ The feature applies to normal page summaries and selected-text summaries in both
 
 ## User Interface
 
-Add a Debug Mode checkbox in the popup Settings panel. The checkbox is enabled only for the current popup session: it defaults to off on popup load and is not saved in browser storage.
+Add a "Show sent prompts after summaries" checkbox beside "Enable metrics collection" in the Full Settings page's "Diagnostics & Usage Statistics" section. The setting is stored as `debugEnabled` in browser storage and remains enabled until the user turns it off.
 
 When the checkbox was enabled when the user started a summary, display a Debug section below the successful summary. The section includes:
 
@@ -23,7 +23,7 @@ The debug UI must never expose the API key, request headers, or other credential
 
 ## Architecture And Data Flow
 
-The popup includes its in-memory debug flag in the existing summarize-page message. The background script remains the single source of truth for prompt construction. It captures the original extraction length, composes the prompt, calculates source and prompt lengths, then calls the AI API.
+Before each summary request, the popup reads `debugEnabled` and includes it in the existing summarize-page message. The background script remains the single source of truth for prompt construction. It captures the original extraction length, composes the prompt, calculates source and prompt lengths, then calls the AI API.
 
 When debug mode is enabled, the successful background response includes a debug object alongside the summary. When disabled, it omits debug data to avoid duplicating page content in normal messages. The popup clears earlier debug output when a new request starts and renders the new debug section only after a successful response.
 

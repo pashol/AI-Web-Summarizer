@@ -491,13 +491,17 @@
 
     <div class="section">
       <div class="metrics-toggle" id="metricsToggle">
-        <h2>Usage Statistics</h2>
+        <h2>Diagnostics &amp; Usage Statistics</h2>
         <span class="metrics-toggle-arrow" id="metricsArrow">&#9660;</span>
       </div>
       <div class="metrics-content" id="metricsContent">
         <label style="display:flex;align-items:center;gap:10px;margin-bottom:16px;cursor:pointer;">
           <input type="checkbox" id="metricsEnabled" style="width:auto;margin:0;">
           <span>Enable metrics collection</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;margin-bottom:16px;cursor:pointer;">
+          <input type="checkbox" id="debugEnabled" style="width:auto;margin:0;">
+          <span>Show sent prompts after summaries</span>
         </label>
         <div class="hint" style="margin-top:0;margin-bottom:16px;">
           All data is stored locally and never sent anywhere. You can reset or disable it at any time.
