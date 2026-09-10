@@ -35,6 +35,7 @@ function renderDebugPanel(debug) {
     `Extraction: ${debug.extractionUsed || 'unknown'}`,
     `Extracted: ${debug.extractedBefore} chars (capped to ${debug.extractedAfter})`,
     `Prompt source: ${debug.sourceBefore} chars (capped to ${debug.sourceAfter})`,
+    `Article limit: ${(debug.articleTextLimit || debug.sourceAfter || 0).toLocaleString('en-US')} chars`,
     `Full prompt: ${debug.promptLength} chars`
   ];
   lines.forEach(text => {
@@ -298,9 +299,11 @@ document.getElementById('summarizeBtn').addEventListener('click', async () => {
     if (response.wasTruncated) {
       const note = document.createElement('div');
       note.style.cssText = 'font-size: 11px; color: #888; margin-top: 8px; font-style: italic;';
+      const truncationLimit = response.truncationLimit || 25000;
+      const limitLabel = truncationLimit.toLocaleString('en-US');
       note.textContent = response.isSelectedText
-        ? 'Note: selected text was truncated to 12,000 characters.'
-        : 'Note: page content was truncated to 12,000 characters.';
+        ? `Note: selected text was truncated to ${limitLabel} characters.`
+        : `Note: page content was truncated to ${limitLabel} characters.`;
       result.appendChild(note);
     }
     speakBtn.style.display = 'block';
@@ -394,9 +397,11 @@ document.getElementById('translateBtn').addEventListener('click', async () => {
     if (response.wasTruncated) {
       const note = document.createElement('div');
       note.style.cssText = 'font-size: 11px; color: #888; margin-top: 8px; font-style: italic;';
+      const truncationLimit = response.truncationLimit || 25000;
+      const limitLabel = truncationLimit.toLocaleString('en-US');
       note.textContent = response.isSelectedText
-        ? 'Note: selected text was truncated to 10,000 characters.'
-        : 'Note: page content was truncated to 10,000 characters.';
+        ? `Note: selected text was truncated to ${limitLabel} characters.`
+        : `Note: page content was truncated to ${limitLabel} characters.`;
       result.appendChild(note);
     }
     speakBtn.style.display = 'block';

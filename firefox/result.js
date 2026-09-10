@@ -100,18 +100,18 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
   
   if (request.action === 'streamStart') {
-    setPageInfo(request.title, request.url, request.wasTruncated, request.isSelectedText, request.mode || 'summary');
+    setPageInfo(request.title, request.url, request.wasTruncated, request.isSelectedText, request.mode || 'summary', request.truncationLimit);
     document.getElementById('loading').style.display = 'none';
     sendResponse({ success: true });
   } else if (request.action === 'displaySummary') {
     console.log('[AI Summarizer] pageText length:', request.pageText?.length, '| preview:', request.pageText?.substring(0, 200));
-    displaySummary(request.summary, request.title, request.url, request.wasTruncated, request.isSelectedText, request.pageText);
+    displaySummary(request.summary, request.title, request.url, request.wasTruncated, request.isSelectedText, request.pageText, request.truncationLimit);
     sendResponse({ success: true });
   } else if (request.action === 'displayFactCheck') {
     displayFactCheck(request.factCheck, request.title, request.url, request.isSelectedText);
     sendResponse({ success: true });
   } else if (request.action === 'displayTranslation') {
-    displayTranslation(request.translation, request.title, request.url, request.wasTruncated, request.isSelectedText, request.pageText);
+    displayTranslation(request.translation, request.title, request.url, request.wasTruncated, request.isSelectedText, request.pageText, request.truncationLimit);
     sendResponse({ success: true });
   } else if (request.action === 'displayError') {
     displayError(request.error);
@@ -123,11 +123,11 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
   return true;
 });
 
-function displaySummary(summary, title, url, wasTruncated, isSelectedText, pageText) {
+function displaySummary(summary, title, url, wasTruncated, isSelectedText, pageText, truncationLimit) {
   isStreaming = false;
   document.getElementById('loading').style.display = 'none';
   if (!pageInfoSet) {
-    setPageInfo(title, url, wasTruncated, isSelectedText, 'summary');
+    setPageInfo(title, url, wasTruncated, isSelectedText, 'summary', truncationLimit);
   }
 
   const summaryEl = document.getElementById('summary');
@@ -140,11 +140,11 @@ function displaySummary(summary, title, url, wasTruncated, isSelectedText, pageT
   conversationHistory = [];
 }
 
-function displayTranslation(translation, title, url, wasTruncated, isSelectedText, pageText) {
+function displayTranslation(translation, title, url, wasTruncated, isSelectedText, pageText, truncationLimit) {
   isStreaming = false;
   document.getElementById('loading').style.display = 'none';
   if (!pageInfoSet) {
-    setPageInfo(title, url, wasTruncated, isSelectedText, 'translate');
+    setPageInfo(title, url, wasTruncated, isSelectedText, 'translate', truncationLimit);
   }
 
   const summaryEl = document.getElementById('summary');
@@ -171,7 +171,7 @@ function truncateUrl(url, maxLength = 80) {
   return start + '...' + end;
 }
 
-function setPageInfo(title, url, wasTruncated, isSelectedText, mode = 'summary') {
+function setPageInfo(title, url, wasTruncated, isSelectedText, mode = 'summary', truncationLimit = 25000) {
   document.getElementById('pageTitle').textContent = title;
 
   const pageUrlElement = document.getElementById('pageUrl');
@@ -199,9 +199,10 @@ function setPageInfo(title, url, wasTruncated, isSelectedText, mode = 'summary')
     const note = document.createElement('div');
     note.style.cssText = 'font-size: 12px; color: #888; margin-top: 4px; font-style: italic;';
     const actionWord = mode === 'translate' ? 'translating' : 'summarizing';
+    const limitLabel = (truncationLimit || 25000).toLocaleString('en-US');
     note.textContent = isSelectedText
-      ? `Note: selected text was truncated to 10,000 characters before ${actionWord}.`
-      : `Note: page content was truncated to 12,000 characters before ${actionWord}.`;
+      ? `Note: selected text was truncated to ${limitLabel} characters before ${actionWord}.`
+      : `Note: page content was truncated to ${limitLabel} characters before ${actionWord}.`;
     pageUrlElement.appendChild(note);
   }
 
