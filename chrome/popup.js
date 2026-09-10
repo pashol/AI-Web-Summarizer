@@ -3,7 +3,6 @@ const synth = window.speechSynthesis;
 let MODELS = {};
 let availableVoices = [];
 let hasApiKey = false;
-let debugMode = false;
 
 const langMap = {
   'english': 'en', 'spanish': 'es', 'french': 'fr', 'german': 'de',
@@ -13,10 +12,6 @@ const langMap = {
 };
 
 document.getElementById('ext-version').textContent = chrome.runtime.getManifest().version;
-
-const debugCheckbox = document.getElementById('debugMode');
-debugCheckbox.checked = false;
-debugCheckbox.addEventListener('change', () => { debugMode = debugCheckbox.checked; });
 
 function clearDebugPanel() {
   const debugPanel = document.getElementById('debugPanel');
@@ -281,11 +276,12 @@ document.getElementById('summarizeBtn').addEventListener('click', async () => {
 
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    const { debugEnabled } = await chrome.storage.local.get(['debugEnabled']);
 
     const response = await chrome.runtime.sendMessage({
       action: 'summarizePage',
       tab: tab,
-      debug: debugMode
+      debug: debugEnabled === true
     });
 
     if (response.error) throw new Error(response.error);
