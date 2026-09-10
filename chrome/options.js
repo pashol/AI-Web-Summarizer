@@ -280,7 +280,7 @@ function loadMetrics() {
 
 function loadSettings() {
   chrome.storage.local.get([
-    'provider', 'apiKeys', 'model', 'language',
+    'provider', 'apiKeys', 'model', 'language', 'articleTextLimit',
     'ttsRate', 'ttsPitch', 'ttsVoice', 'streaming', 'theme'
   ], (data) => {
     const provider = data.provider || 'openrouter';
@@ -290,6 +290,11 @@ function loadSettings() {
     document.getElementById('apiKey').value = currentApiKeys[provider] || '';
 
     if (data.language) document.getElementById('language').value = data.language;
+
+    const articleTextLimitRaw = Number(data.articleTextLimit);
+    document.getElementById('articleTextLimit').value = Number.isFinite(articleTextLimitRaw)
+      ? Math.min(100000, Math.max(1000, Math.floor(articleTextLimitRaw)))
+      : 25000;
 
     if (data.ttsRate) {
       document.getElementById('ttsRate').value = data.ttsRate;
@@ -310,6 +315,13 @@ function loadSettings() {
 }
 
 document.getElementById('saveBtn').addEventListener('click', () => {
+  const articleTextLimitRaw = Number(document.getElementById('articleTextLimit').value);
+  if (!Number.isFinite(articleTextLimitRaw) || articleTextLimitRaw < 1000 || articleTextLimitRaw > 100000 || !Number.isInteger(articleTextLimitRaw)) {
+    const msg = document.getElementById('statusMsg');
+    msg.className = 'status-msg error';
+    msg.textContent = 'Article text limit must be a whole number between 1,000 and 100,000.';
+    return;
+  }
   const provider = document.getElementById('provider').value;
   const apiKey = document.getElementById('apiKey').value;
   const model = document.getElementById('model').value;
@@ -321,7 +333,7 @@ document.getElementById('saveBtn').addEventListener('click', () => {
   const theme = document.querySelector('.theme-option.active').dataset.value;
   currentApiKeys[provider] = apiKey;
 
-  chrome.storage.local.set({ provider, apiKeys: currentApiKeys, model, language, ttsRate, ttsPitch, ttsVoice, streaming, theme }, () => {
+  chrome.storage.local.set({ provider, apiKeys: currentApiKeys, model, language, articleTextLimit: articleTextLimitRaw, ttsRate, ttsPitch, ttsVoice, streaming, theme }, () => {
     const msg = document.getElementById('statusMsg');
     msg.className = 'status-msg success';
     msg.textContent = 'Preferences saved.';
