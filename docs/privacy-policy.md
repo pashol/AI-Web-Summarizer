@@ -2,14 +2,14 @@
 
 **Extension:** AI Web Summarizer
 **Extension ID:** ai-summarizer-extension@yourdomain.com
-**Last Updated:** 2026-04-15
-**Effective Date:** 2026-04-15
+**Last Updated:** 2026-09-10
+**Effective Date:** 2026-09-10
 
 ---
 
 ## 1. Overview
 
-AI Web Summarizer is a browser extension for Firefox and Chrome that uses third-party AI APIs (OpenAI or OpenRouter) to generate summaries and fact-checks of web pages the user is actively viewing. This policy explains exactly what data is collected, why, how it is used, and how it is protected.
+AI Web Summarizer is a browser extension for Firefox and Chrome that uses third-party AI APIs (OpenAI or OpenRouter) to generate summaries, translations, and fact-checks of web pages the user is actively viewing. This policy explains exactly what data is collected, why, how it is used, and how it is protected.
 
 ---
 
@@ -20,19 +20,19 @@ AI Web Summarizer is a browser extension for Firefox and Chrome that uses third-
 | Data | Purpose | Where Stored |
 |------|---------|--------------|
 | **AI API Key** (OpenAI or OpenRouter) | Required to authenticate requests to the AI provider of your choice | `browser.storage.local` (browser-encrypted, local only) |
-| **Preferences** (AI provider, model, language, TTS voice/rate/pitch, streaming, theme) | Persist your settings between sessions | `browser.storage.local` (local only) |
+| **Preferences** (AI provider, model, language, article text limit, TTS voice/rate/pitch, streaming, theme) | Persist your settings between sessions | `browser.storage.local` (local only) |
 | **Usage Metrics** (action counts, extraction method/fallback stats, provider/model usage, error counts, daily usage over 30 days) | Help improve the extension by tracking which features are used | `browser.storage.local` (local only; never transmitted; can be disabled in Settings) |
 | **Custom prompts** (optional, entered in chat panel) | Sent to AI API to answer your question about the current page | In-memory only during request; not stored |
 
 ### 2.2 Web Page Content Accessed When You Initiate a Request
 
-When you click "Summarize This Page", "Fact-Check This Page", or use the context menu, the extension reads **the current tab only** and collects:
+When you click "Summarize This Page", "Translate", "Fact-Check This Page", or use the context menu, the extension reads **the current tab only** and collects:
 
 | Data | Purpose | Stored? |
 |------|---------|---------|
 | Page **title** | Included in AI prompt for context | No — in-memory only during request |
 | Page **URL** | Included in AI prompt for context | No — in-memory only during request |
-| Main body **text content** (up to 12,000 characters; scripts, ads, nav removed) | Sent to AI API to generate the summary or fact-check | No — in-memory only during request |
+| Main body **text content** (up to your configured article text limit — default 25,000 characters, adjustable 1,000–100,000; scripts, ads, nav removed) | Sent to AI API to generate the summary, translation, or fact-check | No — in-memory only during request |
 | **Selected text** (only when fact-checking via context-menu on a selection) | Sent to AI API as the content to fact-check | No — in-memory only during request |
 
 The extension **does not** read page content in the background, on page load, or without a direct user action.
@@ -64,12 +64,12 @@ The extension transmits data to **exactly two possible external services**, depe
 
 ### Option A: OpenAI
 - **Endpoint:** `https://api.openai.com/v1/chat/completions`
-- **Data sent:** Your API key (Authorization header) + page title, URL, and text content (up to 10,000 characters) in the request body.
+- **Data sent:** Your API key (Authorization header) + page title, URL, and text content (up to your configured article text limit) in the request body.
 - **OpenAI's Privacy Policy:** https://openai.com/policies/privacy-policy
 
 ### Option B: OpenRouter
 - **Endpoint:** `https://openrouter.ai/api/v1/chat/completions`
-- **Data sent:** Your API key (Authorization header) + page title, URL, and text content (up to 10,000 characters) in the request body.
+- **Data sent:** Your API key (Authorization header) + page title, URL, and text content (up to your configured article text limit) in the request body.
 - **OpenRouter's Privacy Policy:** https://openrouter.ai/privacy
 
 **No other third parties receive any data.** The extension does not use advertising networks, analytics services, or any other external services.
@@ -92,7 +92,7 @@ The extension transmits data to **exactly two possible external services**, depe
 | Data | Retention Period |
 |------|-----------------|
 | API Key | Until you delete it in Settings or uninstall the extension |
-| Settings (provider, model, language, TTS, streaming, theme) | Until you change them or uninstall the extension |
+| Settings (provider, model, language, article text limit, TTS, streaming, theme) | Until you change them or uninstall the extension |
 | Usage Metrics | Until you reset them in Settings or uninstall the extension; daily usage pruned after 30 days |
 | Page content, URLs, titles | Not retained — discarded immediately after AI response is received |
 | Summaries / AI responses | Not retained — cleared when the popup or result window is closed |
@@ -118,7 +118,7 @@ The following permissions are declared in `manifest.json` and are the minimum re
 |-----------|-----------------|
 | `activeTab` | Read the title, URL, and text content of the tab you are currently viewing when you initiate a summarization |
 | `storage` | Save your API key, AI provider, model, language, TTS, streaming, and theme settings locally |
-| `contextMenus` | Add a "Summarize This Page with AI" and "Fact-Check" entry to the browser right-click menu |
+| `contextMenus` | Add "Summarize This Page with AI", "Translate This", and "Fact-Check" entries to the browser right-click menu |
 | `notifications` | Notify you when an API key is missing or when an error occurs during a request |
 | `<all_urls>` (content script) | Inject the content extraction script (including Mozilla's Readability.js library) into any page so it can extract text when you request a summary; no data is collected passively |
 

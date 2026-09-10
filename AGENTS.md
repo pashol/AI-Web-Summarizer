@@ -11,7 +11,7 @@ This repo has **separate Firefox and Chrome implementations** at `firefox/` and 
 | Manifest | V2 | V3 |
 | API | `browser.*` (promises) | `chrome.*` (callbacks) |
 | Background | Event-driven script | Service worker |
-| Content limit | 12,000 chars extracted, 10,000 sent to API |
+| Content limit | Configurable article text limit (1,000–100,000 chars, default 25,000) |
 
 ## Message Listener Pattern
 
@@ -60,7 +60,7 @@ Message flows:
 ## Settings Architecture
 
 **popup.html (quick settings)**: Provider, Model, Language only + "Full Settings" button
-**options.html (full settings)**: Provider, API Key (per-provider), Model, Language, Extraction Mode, TTS, Streaming, Theme, Usage Statistics, Shortcuts
+**options.html (full settings)**: Provider, API Key (per-provider), Model, Language, Article Text Limit, TTS, Streaming, Theme, Usage Statistics, Shortcuts
 
 The API key field in options.html dynamically shows the key for the currently selected provider. Switching providers saves the current key and loads the other one.
 
@@ -85,7 +85,7 @@ No build step. Load directly:
 - `Readability.js` — Mozilla Readability parser for article extraction
 - `popup.js` — Quick settings UI (provider, model, language)
 - `result.js` — Summary/fact-check result window
-- `options.js` — Full preferences (API key per provider, extraction mode, TTS, streaming, theme, metrics)
+- `options.js` — Full preferences (API key per provider, article text limit, TTS, streaming, theme, metrics)
 
 ## Adding a Model
 

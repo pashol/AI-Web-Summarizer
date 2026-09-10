@@ -164,8 +164,7 @@ Mozilla Readability extracts clean article content for every request. When Reada
 - Handle dynamic content (JavaScript-rendered pages)
 
 **Limits:**
-- Firefox: Extracts up to 12,000 characters, sends 10,000 to API
-- Chrome: Extracts up to 12,000 characters, sends 10,000 to API
+- Firefox & Chrome: Content capped at your configured article text limit (1,000–100,000 characters, default 25,000; set in Options → Response & Content)
 
 ### Fact-Check Mode
 
@@ -361,7 +360,7 @@ When you change the target language, TTS automatically:
 **"Content Too Long" Notice**
 - Page exceeds character limit
 - Use "Summarize Selected Text" for specific sections
-- The extension extracts up to 12,000 characters
+- The extension caps content at your configured article text limit (default 25,000 characters)
 
 **Summary is Empty or Poor Quality**
 - Some websites block content extraction
@@ -446,7 +445,7 @@ A: Firefox uses Manifest V2, Chrome uses Manifest V3. They have different APIs a
 A: Yes. Your IP address is only used for API communication with your chosen provider.
 
 **Q: What's the character limit?**
-A: Up to 12,000 characters extracted, 10,000 sent to API per request.
+A: Up to your configured article text limit (default 25,000 characters, adjustable 1,000–100,000 in Options → Response & Content) per request.
 
 **Q: Can I summarize selected text only?**
 A: Yes! Highlight text on the page, click the extension icon, and click **"Summarize"**. The AI will summarize only your selection.
@@ -548,5 +547,5 @@ For full details, see [Privacy Policy](privacy-policy.md).
 
 ---
 
-**Version**: Firefox 2.3.1 | Chrome 2.3.1  
-**Last Updated**: September 4, 2026
+**Version**: Firefox 2.4.0 | Chrome 2.4.0  
+**Last Updated**: September 10, 2026

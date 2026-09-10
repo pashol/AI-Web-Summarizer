@@ -13,7 +13,21 @@ A powerful browser extension that uses advanced AI models to instantly summarize
 
 ---
 
-## 📰 Latest Release: v2.3.1
+## 📰 Latest Release: v2.4.0
+
+### ✨ What's New
+- **Configurable article text limit**: New "Article text limit" setting in Response & Content settings (1,000–100,000 chars, default 25,000) — applies to summaries, translations, fact checks, and chat context
+- **Readability-first extraction**: Mozilla Readability is now the default extractor with automatic fallback to the built-in DOM extractor; extraction mode setting removed
+- **Session debug panel**: Popup shows article limit, source lengths, and truncation status to help diagnose extraction issues
+- **Smarter truncation notices**: Truncation notes show the configured limit and appear for fact checks too
+
+### 🔧 Improvements
+- Higher default content allowance (25,000 chars, up from 10,000) for better long-article coverage
+- Consolidated "Response & Content" settings section (streaming + article limit in one place)
+
+---
+
+## 📰 Previous Release: v2.3.1
 
 ### ✨ What's New
 - **Updated OpenAI models**: GPT-5.6 Terra (Balanced), GPT-5.6 Luna (Efficient)
@@ -129,10 +143,10 @@ See [docs/help.md](docs/help.md) for detailed usage guide, TTS controls, and fea
 
 | | Firefox | Chrome |
 |---|---|---|
-| Version | 2.3.1 | 2.3.1 |
+| Version | 2.4.0 | 2.4.0 |
 | Manifest | V2 | V3 |
 | Background | Event-driven script | Service worker |
-| Content limit | 12,000 chars extracted, 10,000 sent to API | 12,000 chars extracted, 10,000 sent to API |
+| Content limit | Configurable article text limit (1,000–100,000 chars, default 25,000) | Configurable article text limit (1,000–100,000 chars, default 25,000) |
 
 **API**: OpenAI (GPT-5.6 Terra/Luna) and OpenRouter (Gemini 3 Flash, DeepSeek V3.2, Claude Haiku/Sonnet/Opus, Mistral, free tier)
 
@@ -180,11 +194,11 @@ This project is open source. Feel free to use, modify, and distribute as you see
 - **API Keys**: OpenAI at [platform.openai.com](https://platform.openai.com/) or OpenRouter at [openrouter.ai](https://openrouter.ai/)
 - **Model Selection**: GPT-5.6 Luna for cost-effective, GPT-5.6 Terra / Claude for quality
 - **Language**: Summarize in original language for better accuracy; use Translate to read in another language
-- **Long articles**: Content truncated at 12,000 chars with notice shown
+- **Long articles**: Content capped at your configured article text limit (default 25,000 chars) with notice shown
 
 **For detailed documentation, troubleshooting, and FAQ, see [docs/help.md](docs/help.md).**
 
 ---
 
-**Version**: Firefox 2.3.1 | Chrome 2.3.1
-**Last Updated**: September 4, 2026
+**Version**: Firefox 2.4.0 | Chrome 2.4.0
+**Last Updated**: September 10, 2026
