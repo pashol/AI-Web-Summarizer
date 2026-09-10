@@ -3,6 +3,7 @@ const synth = window.speechSynthesis;
 let MODELS = {};
 let availableVoices = [];
 let hasApiKey = false;
+let debugMode = false;
 
 const langMap = {
   'english': 'en', 'spanish': 'es', 'french': 'fr', 'german': 'de',
@@ -12,6 +13,51 @@ const langMap = {
 };
 
 document.getElementById('ext-version').textContent = browser.runtime.getManifest().version;
+
+const debugCheckbox = document.getElementById('debugMode');
+debugCheckbox.checked = false;
+debugCheckbox.addEventListener('change', () => { debugMode = debugCheckbox.checked; });
+
+function clearDebugPanel() {
+  const debugPanel = document.getElementById('debugPanel');
+  if (!debugPanel) return;
+  debugPanel.textContent = '';
+  debugPanel.classList.add('hidden');
+}
+
+function renderDebugPanel(debug) {
+  const debugPanel = document.getElementById('debugPanel');
+  if (!debugPanel || !debug) return;
+  debugPanel.textContent = '';
+
+  const title = document.createElement('div');
+  title.style.cssText = 'font-weight: 600; margin-bottom: 8px;';
+  title.textContent = 'Debug: sent prompt';
+  debugPanel.appendChild(title);
+
+  const lines = [
+    `Source: ${debug.source}`,
+    `Extraction: ${debug.extractionUsed || 'unknown'}`,
+    `Extracted: ${debug.extractedBefore} chars (capped to ${debug.extractedAfter})`,
+    `Prompt source: ${debug.sourceBefore} chars (capped to ${debug.sourceAfter})`,
+    `Full prompt: ${debug.promptLength} chars`
+  ];
+  lines.forEach(text => {
+    const line = document.createElement('div');
+    line.style.cssText = 'font-size: 12px; color: #555;';
+    line.textContent = text;
+    debugPanel.appendChild(line);
+  });
+
+  const promptBox = document.createElement('textarea');
+  promptBox.readOnly = true;
+  promptBox.rows = 10;
+  promptBox.style.cssText = 'width: 100%; margin-top: 8px; font-size: 12px; white-space: pre-wrap;';
+  promptBox.value = debug.prompt;
+  debugPanel.appendChild(promptBox);
+
+  debugPanel.classList.remove('hidden');
+}
 
 browser.runtime.sendMessage({ action: 'getModels' }).then(response => {
   MODELS = response.models;
@@ -226,13 +272,15 @@ document.getElementById('summarizeBtn').addEventListener('click', async () => {
   result.textContent = 'Generating summary...';
   result.removeAttribute('data-selected-text');
   result.classList.remove('hidden');
+  clearDebugPanel();
 
   try {
     const tabs = await browser.tabs.query({ active: true, currentWindow: true });
 
     const response = await browser.runtime.sendMessage({
       action: 'summarizePage',
-      tab: tabs[0]
+      tab: tabs[0],
+      debug: debugMode
     });
 
     if (response.error) throw new Error(response.error);
@@ -255,9 +303,11 @@ document.getElementById('summarizeBtn').addEventListener('click', async () => {
       result.appendChild(note);
     }
     speakBtn.style.display = 'block';
+    if (response.debug) renderDebugPanel(response.debug);
   } catch (error) {
     result.className = 'summary error';
     result.textContent = `Error: ${error.message}`;
+    clearDebugPanel();
 
     if (error.message.includes('API key')) {
       document.getElementById('settingsPanel').classList.remove('hidden');
