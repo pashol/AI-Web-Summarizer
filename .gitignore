@@ -1,4 +1,5 @@
 *.zip
+!releases/*.zip
 *.tgz
 .worktrees/
 
