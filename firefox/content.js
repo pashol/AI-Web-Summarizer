@@ -2,11 +2,15 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'getContent') {
     const selectedText = window.getSelection().toString().trim();
     const { text: fullText, method: extractionUsed } = extractMainContent();
-    const wasTruncated = fullText.length > 12000;
+    const requestedLimit = Number(request.articleTextLimit);
+    const articleTextLimit = Number.isFinite(requestedLimit)
+      ? Math.min(100000, Math.max(1000, Math.floor(requestedLimit)))
+      : 25000;
+    const wasTruncated = fullText.length > articleTextLimit;
     const pageContent = {
       title: document.title,
       url: window.location.href,
-      text: fullText.substring(0, 12000),
+      text: fullText.substring(0, articleTextLimit),
       selectedText: selectedText || null,
       wasTruncated,
       fullLength: fullText.length,
