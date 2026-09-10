@@ -45,21 +45,6 @@ A powerful browser extension that uses advanced AI models to instantly summarize
 
 ---
 
-## 📰 Previous Release: v2.0.0
-
-### ✨ What's New
-- **Enhanced TTS controls**: Full voice selection with speed (0.5x-2.0x) and pitch (0.5-2.0) adjustment
-- **Smart truncation**: Intelligent handling of long content with clear indicators
-- **Selected text summarization**: Highlight any text before clicking summarize for focused summaries
-- **Context menu integration**: Right-click anywhere to summon the summarizer
-
-### 🔧 Improvements
-- Refreshed AI model list with latest 2026 models
-- Free tier support via OpenRouter with auto-selection of best available model
-- Improved content extraction for cleaner summaries
-
----
-
 ## 🚀 Quick Start
 
 ### Prerequisites
