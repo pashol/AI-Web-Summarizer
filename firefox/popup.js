@@ -342,6 +342,16 @@ document.getElementById('factCheckBtn').addEventListener('click', async () => {
 
     result.className = 'summary';
     result.textContent = response.factCheck;
+    if (response.wasTruncated) {
+      const note = document.createElement('div');
+      note.style.cssText = 'font-size: 11px; color: #888; margin-top: 8px; font-style: italic;';
+      const truncationLimit = response.truncationLimit || 25000;
+      const limitLabel = truncationLimit.toLocaleString('en-US');
+      note.textContent = response.isSelectedText
+        ? `Note: selected text was truncated to ${limitLabel} characters.`
+        : `Note: page content was truncated to ${limitLabel} characters.`;
+      result.appendChild(note);
+    }
     speakBtn.style.display = 'block';
   } catch (error) {
     result.className = 'summary error';

@@ -108,7 +108,7 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
     displaySummary(request.summary, request.title, request.url, request.wasTruncated, request.isSelectedText, request.pageText, request.truncationLimit);
     sendResponse({ success: true });
   } else if (request.action === 'displayFactCheck') {
-    displayFactCheck(request.factCheck, request.title, request.url, request.isSelectedText);
+    displayFactCheck(request.factCheck, request.title, request.url, request.isSelectedText, request.wasTruncated, request.truncationLimit);
     sendResponse({ success: true });
   } else if (request.action === 'displayTranslation') {
     displayTranslation(request.translation, request.title, request.url, request.wasTruncated, request.isSelectedText, request.pageText, request.truncationLimit);
@@ -198,7 +198,7 @@ function setPageInfo(title, url, wasTruncated, isSelectedText, mode = 'summary',
   if (wasTruncated) {
     const note = document.createElement('div');
     note.style.cssText = 'font-size: 12px; color: #888; margin-top: 4px; font-style: italic;';
-    const actionWord = mode === 'translate' ? 'translating' : 'summarizing';
+    const actionWord = mode === 'translate' ? 'translating' : mode === 'factcheck' ? 'fact-checking' : 'summarizing';
     const limitLabel = (truncationLimit || 25000).toLocaleString('en-US');
     note.textContent = isSelectedText
       ? `Note: selected text was truncated to ${limitLabel} characters before ${actionWord}.`
@@ -223,11 +223,11 @@ function appendStreamChunk(chunk, fullText) {
   summaryEl.scrollTop = summaryEl.scrollHeight;
 }
 
-function displayFactCheck(factCheck, title, url, isSelectedText) {
+function displayFactCheck(factCheck, title, url, isSelectedText, wasTruncated = false, truncationLimit = 25000) {
   document.getElementById('loading').style.display = 'none';
   document.title = 'AI Fact Check Result';
   if (!pageInfoSet) {
-    setPageInfo(title, url, false, isSelectedText, 'factcheck');
+    setPageInfo(title, url, wasTruncated, isSelectedText, 'factcheck', truncationLimit);
   }
 
   const summaryEl = document.getElementById('summary');
