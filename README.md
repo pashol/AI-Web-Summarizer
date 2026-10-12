@@ -39,24 +39,6 @@ A powerful browser extension that uses advanced AI models to instantly summarize
 
 ---
 
-## 📰 Earlier Release: v2.3.1
-
-### ✨ What's New
-- **Updated OpenAI models**: GPT-5.6 Terra (Balanced), GPT-5.6 Luna (Efficient)
-- **Page translation**: Translate full webpages or selected text into your chosen language
-- **Translate shortcut**: New keyboard shortcut (`Ctrl+Alt+T` on Firefox, `Ctrl+Shift+T` on Chrome)
-- **Context menu translate**: Right-click anywhere and select "Translate This"
-
-### 🔧 Improvements
-- **Unified language setting**: Language now applies to summaries, translations, and TTS
-- **Ctrl+Enter shortcut**: Send custom prompts from the popup with `Ctrl+Enter`
-- **Updated popup actions**: Cleaner summarize/translate/fact-check buttons
-
-### 🐛 Bug Fixes
-- Plain-text instruction added to custom prompts to prevent markdown formatting
-
----
-
 ## 🚀 Quick Start
 
 ### Prerequisites
