@@ -13,7 +13,19 @@ A powerful browser extension that uses advanced AI models to instantly summarize
 
 ---
 
-## 📰 Latest Release: v2.4.0
+## 📰 Latest Release: v2.5.0
+
+### ✨ What's New
+- **Selected-text fact checks**: Fact-checking from the popup or context menu uses highlighted text when available and clearly marks the result as selection-only
+- **Response metrics**: Usage statistics now show API finish reasons, including responses that reached the output limit
+
+### 🔧 Improvements
+- Fact checks distinguish unverified recent or future claims from claims contradicted by established facts, without implying live web verification
+- More reliable local metrics recording for consecutive API responses
+
+---
+
+## 📰 Previous Release: v2.4.0
 
 ### ✨ What's New
 - **Configurable article text limit**: New "Article text limit" setting in Response & Content settings (1,000–100,000 chars, default 25,000) — applies to summaries, translations, fact checks, and chat context
@@ -27,7 +39,7 @@ A powerful browser extension that uses advanced AI models to instantly summarize
 
 ---
 
-## 📰 Previous Release: v2.3.1
+## 📰 Earlier Release: v2.3.1
 
 ### ✨ What's New
 - **Updated OpenAI models**: GPT-5.6 Terra (Balanced), GPT-5.6 Luna (Efficient)
@@ -128,7 +140,7 @@ See [docs/help.md](docs/help.md) for detailed usage guide, TTS controls, and fea
 
 | | Firefox | Chrome |
 |---|---|---|
-| Version | 2.4.0 | 2.4.0 |
+| Version | 2.5.0 | 2.5.0 |
 | Manifest | V2 | V3 |
 | Background | Event-driven script | Service worker |
 | Content limit | Configurable article text limit (1,000–100,000 chars, default 25,000) | Configurable article text limit (1,000–100,000 chars, default 25,000) |
@@ -185,5 +197,5 @@ This project is open source. Feel free to use, modify, and distribute as you see
 
 ---
 
-**Version**: Firefox 2.4.0 | Chrome 2.4.0
-**Last Updated**: September 10, 2026
+**Version**: Firefox 2.5.0 | Chrome 2.5.0
+**Last Updated**: October 12, 2026

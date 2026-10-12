@@ -325,9 +325,6 @@
       border-bottom: 1px solid var(--color-border);
       font-size: 13px;
     }
-    .metrics-item:last-child {
-      border-bottom: none;
-    }
     .metrics-label {
       color: var(--color-text-muted);
     }
@@ -547,6 +544,11 @@
             </div>
             <div class="metrics-item"><span class="metrics-label">API errors</span><span class="metrics-value" id="metricApiErrors">0</span></div>
             <div class="metrics-item"><span class="metrics-label">Extraction errors</span><span class="metrics-value" id="metricExtractionErrors">0</span></div>
+            <div class="metrics-item metrics-full-width" style="border-bottom:1px solid var(--color-border);padding-bottom:8px;margin-top:12px;margin-bottom:4px;">
+              <span style="font-weight:600;">Responses</span>
+              <span></span>
+            </div>
+            <div class="metrics-item metrics-full-width"><span class="metrics-label">API finish reasons (length = output limit)</span><span class="metrics-value" id="metricFinishReasons">-</span></div>
 
             <div class="metrics-item metrics-full-width" style="border-bottom:1px solid var(--color-border);padding-bottom:8px;margin-top:12px;margin-bottom:4px;">
               <span style="font-weight:600;">Timeline</span>

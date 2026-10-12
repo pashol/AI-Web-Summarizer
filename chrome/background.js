@@ -29,18 +29,27 @@ const DEFAULT_METRICS = {
   provider: { openrouter: 0, openai: 0 },
   model: {},
   errors: { apiError: 0, extractionError: 0 },
+  finishReasons: {},
   daily: {}
 };
 
+let metricsWriteQueue = Promise.resolve();
 function recordMetric(entry) {
-  chrome.storage.local.get(['metrics'], (data) => {
+  const update = metricsWriteQueue.then(() => writeMetric(entry));
+  metricsWriteQueue = update.catch(error => console.error('Metrics error:', error));
+  return update;
+}
+
+function writeMetric(entry) {
+  return new Promise(resolve => chrome.storage.local.get(['metrics'], (data) => {
     const metrics = data.metrics || { ...DEFAULT_METRICS };
-    if (!metrics.enabled) return;
+    if (!metrics.enabled) { resolve(); return; }
     if (!metrics.counts) metrics.counts = { ...DEFAULT_METRICS.counts };
     if (!metrics.extraction) metrics.extraction = { ...DEFAULT_METRICS.extraction };
     if (!metrics.provider) metrics.provider = { ...DEFAULT_METRICS.provider };
     if (!metrics.model) metrics.model = {};
     if (!metrics.errors) metrics.errors = { ...DEFAULT_METRICS.errors };
+    if (!metrics.finishReasons) metrics.finishReasons = {};
     if (!metrics.daily) metrics.daily = {};
 
     const now = new Date().toISOString();
@@ -85,6 +94,11 @@ function recordMetric(entry) {
     } else if (entry.error === 'extraction') {
       metrics.errors.extractionError = (metrics.errors.extractionError || 0) + 1;
     }
+    if (entry.finishReason !== undefined) {
+      const reason = entry.finishReason || 'unavailable';
+      const key = ['stop', 'length', 'content_filter', 'tool_calls', 'function_call', 'unavailable'].includes(reason) ? reason : 'other';
+      metrics.finishReasons[key] = (metrics.finishReasons[key] || 0) + 1;
+    }
 
     metrics.daily[today] = (metrics.daily[today] || 0) + 1;
 
@@ -93,8 +107,8 @@ function recordMetric(entry) {
       if (key < cutoff) delete metrics.daily[key];
     }
 
-    chrome.storage.local.set({ metrics });
-  });
+    chrome.storage.local.set({ metrics }, resolve);
+  }));
 }
 
 // Create Context Menu Items on install and startup
@@ -558,14 +572,17 @@ async function handleFactCheckRequest(tab, selectedText) {
 
     recordMetric({ type: 'factCheck', extractionMethod: pageContent.extractionMethod, extractionUsed: pageContent.extractionUsed, wasTruncated: pageContent.wasTruncated, provider: data.provider, model: data.model });
 
-    let contentForAI = { ...pageContent };
+    const selectedContent = selectedText || pageContent.selectedText || null;
+    let contentForAI = selectedContent
+      ? { ...pageContent, text: selectedContent }
+      : pageContent;
     contentForAI = {
       ...contentForAI,
       text: limitArticleText(contentForAI.text, articleTextLimit)
     };
     pageContent = { ...pageContent, text: contentForAI.text };
-    const isSelectedText = !!selectedText;
-    const selectedSourceLength = isSelectedText ? (selectedText || '').length : 0;
+    const isSelectedText = !!selectedContent;
+    const selectedSourceLength = isSelectedText ? selectedContent.length : 0;
     const wasTruncated = isSelectedText
       ? selectedSourceLength > articleTextLimit
       : pageContent.wasTruncated;
@@ -621,13 +638,15 @@ async function handleFactCheckPageFromPopup(tab) {
 
   let pageContent = await chrome.tabs.sendMessage(tab.id, { action: 'getContent', articleTextLimit });
   recordMetric({ type: 'factCheck', extractionMethod: pageContent.extractionMethod, extractionUsed: pageContent.extractionUsed, wasTruncated: pageContent.wasTruncated, provider: data.provider, model: data.model });
-  let contentForAI = { ...pageContent };
+  const selectedText = pageContent.selectedText || null;
+  let contentForAI = selectedText
+    ? { ...pageContent, text: selectedText }
+    : pageContent;
   contentForAI = {
     ...contentForAI,
     text: limitArticleText(contentForAI.text, articleTextLimit)
   };
   pageContent = { ...pageContent, text: contentForAI.text };
-  const selectedText = pageContent.selectedText || contentForAI.selectedText || null;
   const isSelectedText = !!selectedText;
   const selectedSourceLength = isSelectedText ? (selectedText || '').length : 0;
   const wasTruncated = isSelectedText
@@ -726,18 +745,20 @@ function buildApiRequest(settings, pageContent, customPrompt, isSelectedText = f
 function parseSSEChunk(text) {
   const lines = text.split('\n');
   let content = '';
+  let finishReason = null;
   for (const line of lines) {
     if (line.startsWith('data: ')) {
       const data = line.slice(6).trim();
-      if (data === '[DONE]') return { done: true, content };
+      if (data === '[DONE]') return { done: true, content, finishReason };
       try {
         const parsed = JSON.parse(data);
         const delta = parsed.choices?.[0]?.delta?.content;
         if (delta) content += delta;
+        if (parsed.choices?.[0]?.finish_reason) finishReason = parsed.choices[0].finish_reason;
       } catch (e) {}
     }
   }
-  return { done: false, content };
+  return { done: false, content, finishReason };
 }
 
 async function streamApiRequest(url, headers, body, onChunk) {
@@ -756,6 +777,7 @@ async function streamApiRequest(url, headers, body, onChunk) {
   const decoder = new TextDecoder();
   let fullText = '';
   let buffer = '';
+  let finishReason = null;
 
   while (true) {
     const { done, value } = await reader.read();
@@ -767,6 +789,7 @@ async function streamApiRequest(url, headers, body, onChunk) {
 
     for (const part of parts) {
       const result = parseSSEChunk(part);
+      if (result.finishReason) finishReason = result.finishReason;
       if (result.content) {
         fullText += result.content;
         onChunk(result.content, fullText);
@@ -776,12 +799,14 @@ async function streamApiRequest(url, headers, body, onChunk) {
 
   if (buffer.trim()) {
     const result = parseSSEChunk(buffer);
+    if (result.finishReason) finishReason = result.finishReason;
     if (result.content) {
       fullText += result.content;
       onChunk(result.content, fullText);
     }
   }
 
+  await recordMetric({ finishReason });
   return fullText;
 }
 
@@ -813,6 +838,7 @@ async function getSummaryFromAI(settings, pageContent, customPrompt, isSelectedT
     throw new Error(resData.error?.message || 'API Error');
   }
 
+  await recordMetric({ finishReason: resData.choices?.[0]?.finish_reason ?? 'unavailable' });
   return resData.choices[0].message.content;
 }
 
@@ -875,6 +901,7 @@ async function getTranslationFromAI(settings, pageContent, isSelectedText = fals
     throw new Error(resData.error?.message || 'API Error');
   }
 
+  await recordMetric({ finishReason: resData.choices?.[0]?.finish_reason ?? 'unavailable' });
   return resData.choices[0].message.content;
 }
 
@@ -954,6 +981,7 @@ Answer follow-up questions based on the article above. Be concise and accurate. 
     throw new Error(resData.error?.message || 'API Error');
   }
 
+  await recordMetric({ finishReason: resData.choices?.[0]?.finish_reason ?? 'unavailable' });
   return resData.choices[0].message.content;
 }
 
@@ -961,10 +989,15 @@ Answer follow-up questions based on the article above. Be concise and accurate. 
 async function getFactCheckFromAI(settings, pageContent, streamTarget = null) {
   const lang = settings.language || 'english';
   const langInstruction = lang !== 'english' ? `\n\nIMPORTANT: Your entire response must be in ${lang}.` : '';
+  const currentDate = new Date().toISOString().slice(0, 10);
 
   const role = 'You are a critical investigative journalist. Verify the factual claims in the following content with rigorous skepticism.';
 
-  const taskPrompt = `Analyze the content and identify the 5-8 most significant factual claims. For each claim, determine if it is TRUE, FALSE, or UNVERIFIED based on your knowledge.
+  const taskPrompt = `Current date (UTC): ${currentDate}. You have no live web access in this request. Your knowledge cutoff may be earlier than this date. Do not imply that you checked current sources.
+
+Analyze the content and identify up to 5-8 of its most significant checkable factual claims. Assess each claim as TRUE, FALSE, or UNVERIFIED based only on knowledge you can reliably substantiate.
+
+Treat the article's dates and tense as context. Events after your knowledge cutoff, including recent events you cannot confirm, are UNVERIFIED, not automatically fictional or FALSE. Lack of knowledge is not evidence that a claim is false. A future date relative to the current date is not evidence that an event has already happened; treat predictions as UNVERIFIED rather than claiming they happened or are impossible. Use FALSE only for claims contradicted by well-established facts, not for claims you simply cannot check. Use TRUE only when you have high confidence. If you cannot verify a claim, say why, without inventing evidence, sources, or a narrative about the article being fictional. If most claims cannot be checked, say so in the Overall line rather than calling the entire article false.
 
 Respond in EXACTLY this plain text format (no markdown, no asterisks):
 
@@ -1038,5 +1071,6 @@ ${limitArticleText(pageContent.text, getArticleTextLimit(settings))}`;
     throw new Error(resData.error?.message || 'API Error');
   }
 
+  await recordMetric({ finishReason: resData.choices?.[0]?.finish_reason ?? 'unavailable' });
   return resData.choices[0].message.content;
 }

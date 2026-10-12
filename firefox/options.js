@@ -210,6 +210,7 @@ document.getElementById('resetMetricsBtn').addEventListener('click', async () =>
     provider: { openrouter: 0, openai: 0 },
     model: {},
     errors: { apiError: 0, extractionError: 0 },
+    finishReasons: {},
     daily: {}
   };
   DEFAULT_METRICS.enabled = document.getElementById('metricsEnabled').checked;
@@ -223,6 +224,7 @@ function renderMetrics(metrics) {
   const provider = metrics.provider || {};
   const model = metrics.model || {};
   const errors = metrics.errors || {};
+  const finishReasons = metrics.finishReasons || {};
 
   document.getElementById('metricSummarize').textContent = counts.summarize || 0;
   document.getElementById('metricTranslate').textContent = counts.translate || 0;
@@ -245,6 +247,10 @@ function renderMetrics(metrics) {
 
   document.getElementById('metricApiErrors').textContent = errors.apiError || 0;
   document.getElementById('metricExtractionErrors').textContent = errors.extractionError || 0;
+  const finishEntries = Object.entries(finishReasons);
+  document.getElementById('metricFinishReasons').textContent = finishEntries.length
+    ? finishEntries.map(([reason, count]) => `${reason} (${count})`).join(', ')
+    : '-';
 
   document.getElementById('metricFirstUsed').textContent = metrics.firstUsed
     ? new Date(metrics.firstUsed).toLocaleDateString()
@@ -263,6 +269,7 @@ async function loadMetrics() {
     provider: { openrouter: 0, openai: 0 },
     model: {},
     errors: { apiError: 0, extractionError: 0 },
+    finishReasons: {},
     daily: {}
   };
 

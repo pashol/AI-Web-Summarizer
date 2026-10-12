@@ -1,9 +1,9 @@
 # Privacy Policy — AI Web Summarizer
 
 **Extension:** AI Web Summarizer
-**Extension ID:** ai-summarizer-extension@yourdomain.com
-**Last Updated:** 2026-09-10
-**Effective Date:** 2026-09-10
+**Firefox Extension ID:** ai-summarizer-extension@pashol
+**Last Updated:** 2026-10-12
+**Effective Date:** 2026-10-12
 
 ---
 
@@ -21,7 +21,7 @@ AI Web Summarizer is a browser extension for Firefox and Chrome that uses third-
 |------|---------|--------------|
 | **AI API Key** (OpenAI or OpenRouter) | Required to authenticate requests to the AI provider of your choice | `browser.storage.local` (browser-encrypted, local only) |
 | **Preferences** (AI provider, model, language, article text limit, TTS voice/rate/pitch, streaming, theme) | Persist your settings between sessions | `browser.storage.local` (local only) |
-| **Usage Metrics** (action counts, extraction method/fallback stats, provider/model usage, error counts, daily usage over 30 days) | Help improve the extension by tracking which features are used | `browser.storage.local` (local only; never transmitted; can be disabled in Settings) |
+| **Usage Metrics** (action counts, extraction method/fallback stats, provider/model usage, error counts, API finish reasons, daily usage over 30 days) | Show which features are used and whether API responses hit their output limit | `browser.storage.local` (local only; never transmitted; can be disabled in Settings) |
 | **Custom prompts** (optional, entered in chat panel) | Sent to AI API to answer your question about the current page | In-memory only during request; not stored |
 
 ### 2.2 Web Page Content Accessed When You Initiate a Request
@@ -33,7 +33,7 @@ When you click "Summarize This Page", "Translate", "Fact-Check This Page", or us
 | Page **title** | Included in AI prompt for context | No — in-memory only during request |
 | Page **URL** | Included in AI prompt for context | No — in-memory only during request |
 | Main body **text content** (up to your configured article text limit — default 25,000 characters, adjustable 1,000–100,000; scripts, ads, nav removed) | Sent to AI API to generate the summary, translation, or fact-check | No — in-memory only during request |
-| **Selected text** (only when fact-checking via context-menu on a selection) | Sent to AI API as the content to fact-check | No — in-memory only during request |
+| **Selected text** (when using an action on a highlighted selection, including fact-checking from the popup or context menu) | Sent to AI API instead of the full page text for the selected-text action | No — in-memory only during request |
 
 The extension **does not** read page content in the background, on page load, or without a direct user action.
 
@@ -54,7 +54,7 @@ The extension **does not** read page content in the background, on page load, or
 - **Page content (title, URL, text)** — transmitted once per user-initiated request to the AI provider. The response (summary or fact-check) is displayed in the extension UI and immediately discarded. No page content is cached, stored, or re-transmitted.
 - **Custom prompts** — transmitted once to the AI provider. Not stored locally or remotely by the extension.
 - **Settings** — stored locally in your browser and never sent anywhere.
-- **Usage Metrics** — stored locally in your browser. Metrics track how many times you use each feature (summarize, fact-check, custom prompt, follow-up), Readability extraction and fallback statistics, which provider methods are used, and how often content is truncated. No page content, URLs, or API keys are included in metrics. Metrics are never transmitted externally. You can disable or reset metrics at any time in the extension Settings page.
+- **Usage Metrics** — stored locally in your browser. Metrics track how many times you use each feature (summarize, translate, fact-check, custom prompt, follow-up), Readability extraction and fallback statistics, provider/model usage, truncation, and API finish reasons (such as `length` when an output limit is reached). No page content, URLs, or API keys are included in metrics. Metrics are never transmitted externally. You can disable or reset metrics at any time in the extension Settings page.
 
 ---
 

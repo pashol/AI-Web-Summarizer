@@ -328,6 +328,7 @@ document.getElementById('factCheckBtn').addEventListener('click', async () => {
   btn.disabled = true;
   result.className = 'summary loading';
   result.textContent = 'Fact-checking with AI...';
+  result.removeAttribute('data-selected-text');
   result.classList.remove('hidden');
 
   try {
@@ -342,6 +343,13 @@ document.getElementById('factCheckBtn').addEventListener('click', async () => {
 
     result.className = 'summary';
     result.textContent = response.factCheck;
+    if (response.isSelectedText) {
+      result.dataset.selectedText = 'true';
+      const badge = document.createElement('div');
+      badge.style.cssText = 'font-size: 11px; color: #888; margin-bottom: 8px; font-style: italic;';
+      badge.textContent = 'Note: fact-checked selected text only.';
+      result.appendChild(badge);
+    }
     if (response.wasTruncated) {
       const note = document.createElement('div');
       note.style.cssText = 'font-size: 11px; color: #888; margin-top: 8px; font-style: italic;';

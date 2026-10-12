@@ -197,7 +197,7 @@ function setPageInfo(title, url, wasTruncated, isSelectedText, mode = 'summary',
     const note = document.createElement('div');
     note.style.cssText = 'font-size: 12px; color: #888; margin-top: 4px; font-style: italic;';
     note.textContent = mode === 'factcheck'
-      ? '(Fact-checking selected text only)'
+      ? 'Note: fact-checked selected text only.'
       : mode === 'translate'
         ? 'Note: translated selected text only.'
         : 'Note: summarized selected text only.';
